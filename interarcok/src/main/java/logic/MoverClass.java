@@ -2,8 +2,6 @@ package logic;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
-
 import communication.Communication;
 import container.Galaxy;
 import container.SpaceShip;

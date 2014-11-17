@@ -34,6 +34,7 @@ public class Communication
 
         connection.setRequestProperty  ("Authorization", "Basic " + encoded);
         connection.setRequestMethod(method);
+        connection.setUseCaches(false);
         connection.setDoOutput(true);
         connection.connect();
         System.out.println(connection.getURL());
