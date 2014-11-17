@@ -45,6 +45,7 @@ public class MoverClass
 
 	        for( int i = 0; i < route.size() - 1; ++i )
 	        {
+	        	boolean needNext = false;
 	        	for( int j = 0; j < ss.packages.size() ; )
 	        	{
 	        		if( ss.packages.get(j).getTarget().equals(route.get(i)) )
@@ -54,6 +55,10 @@ public class MoverClass
 	        		}
 	        		else
 	        		{
+	        			if(ss.packages.get(j).getTarget().equals(route.get(i+1)))
+	        			{
+	        				needNext = true;
+	        			}
 	        			++j;
 	        		}
 	        	}
@@ -62,7 +67,16 @@ public class MoverClass
 	        		ss.packages.add(pckgs.getFirst());
 	        		c.pickPackage(pckgs.removeFirst().getPackageId());
 	        	}
-	        	Thread.sleep(c.go(route.get(i+1).getName()));
+
+	        	if( pckgs.size() > 0 && pckgs.getFirst().getOrigin().equals(route.get(i+1)) )
+	        	{
+	        		needNext = true;
+	        	}
+
+	        	if( needNext )
+	        	{
+		        	Thread.sleep(c.go(route.get(i+1).getName()));
+	        	}
 	        }
 		}
 	}
