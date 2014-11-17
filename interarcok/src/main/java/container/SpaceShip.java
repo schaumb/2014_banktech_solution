@@ -16,7 +16,7 @@ public class SpaceShip
 	public Planet planet;
 	public Planet targetPlanet;
 	public Integer arrivesAfterMs;
-	public ArrayList<Package> packages;
+	public ArrayList<Package> packages = new ArrayList<Package>();
 
 	public SpaceShip(HashMap<String,Planet> planets, JSONObject whereIs)
 	{
