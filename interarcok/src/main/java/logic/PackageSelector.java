@@ -122,19 +122,12 @@ public class PackageSelector
 			}
 		}
 
-		ArrayList<TreeMap<Integer,Information>> optimums = new ArrayList<TreeMap<Integer,Information>>();
+		TreeMap<Integer,Information> map = new TreeMap<Integer,Information>();
 
-		for( int i = 0; i <= maxPackage ; ++i )
-		{
-			optimums.add(new TreeMap<Integer,Information>());
-		}
-
-		optimums.get(0).put(0, new Information(new PackageComparator(convFrom)));
+		map.put(0, new Information(new PackageComparator(convFrom)));
 
 		for(int j = 0; j < maxPackage; ++j )
 		{
-			TreeMap<Integer,Information> map = optimums.get(j);
-
 			for(Pair p : entries)
 			{
 				Information last = map.floorEntry(p.getKey()).getValue();
@@ -156,8 +149,10 @@ public class PackageSelector
 					map.put(p.getValue(), maxInfo);
 				}
 			}
-			optimums.get(j+1).put(0, map.lastEntry().getValue());
+			Information lastInfo = map.lastEntry().getValue();
+			map.clear();
+			map.put(0, lastInfo);
 		}
-		return new LinkedList<Package>(optimums.get(maxPackage).lastEntry().getValue().pkgs);
+		return new LinkedList<Package>(map.lastEntry().getValue().pkgs);
 	}
 }
