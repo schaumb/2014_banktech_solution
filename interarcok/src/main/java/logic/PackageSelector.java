@@ -102,7 +102,7 @@ public class PackageSelector
 			distances.addVertex(i);
 
 			double dist = 0;
-			for( int j = i - 1; j >= 0; ++j )
+			for( int j = i - 1; j >= 0; --j )
 			{
 				dist += planets.get(j).distance(planets.get(j+1));
 				distances.setEdgeWeight(distances.addEdge(j, i), dist);
