@@ -2,8 +2,10 @@ package communication;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.Map;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import org.json.JSONObject;
@@ -68,18 +70,28 @@ public class Communication
 
 		return null;
 	}
-	private JSONObject sendStuff(String url, HashMap<String,String> map)
+	private JSONObject sendStuff(String url, HashMap<String,String> params)
 	{
 		try
 		{
 			HttpURLConnection connection = (HttpURLConnection)(new URL(domain + url).openConnection());
 
-			for (HashMap.Entry<String, String> entry : map.entrySet())
+			StringBuilder postData = new StringBuilder();
+			for (Map.Entry<String,String> param : params.entrySet())
 			{
-				connection.addRequestProperty(entry.getKey(), entry.getValue());
+				if (postData.length() != 0) postData.append('&');
+				postData.append(URLEncoder.encode(param.getKey(), "UTF-8"));
+				postData.append('=');
+				postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
 			}
+			byte[] postDataBytes = postData.toString().getBytes("UTF-8");
+
+			connection.setDoInput(true);
+			connection.setRequestProperty("Content-Length", String.valueOf(postDataBytes.length));
 
 			buildConnection(connection, "POST");
+
+			connection.getOutputStream().write(postDataBytes);
 
 			return new JSONObject(new JSONTokener(new BufferedReader(new InputStreamReader(connection.getInputStream()))));
 		}
