@@ -24,8 +24,6 @@ public class PlanetGraph extends SimpleDirectedWeightedGraph<Planet,DefaultWeigh
 	}
 	public ArrayList<Planet> getShortestPath(Collection<Package> packages , Planet from)
 	{
-		removeAllEdges(edgeSet());
-
 		for( Planet p1 : vertexSet() )
 		{
 			for( Planet p2 : vertexSet() )
@@ -83,6 +81,12 @@ public class PlanetGraph extends SimpleDirectedWeightedGraph<Planet,DefaultWeigh
 			planets.add(next);
 			last = next;
 		}
+
+		for( DefaultWeightedEdge edge : edgeSet() )
+		{
+			removeEdge(edge);
+		}
+
 		return planets;
 	}
 }

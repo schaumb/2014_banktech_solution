@@ -14,6 +14,9 @@ public class Galaxy
 	{
 		public Package(JSONObject pack)
 		{
+			System.out.println(pack.toString());
+
+			System.out.println("Gotted package ID : " + pack.getInt("packageId"));
 			packageId = pack.getInt("packageId");
 			origin_s = pack.getString("originalPlanet");
 			target_s = pack.getString("targetPlanet");

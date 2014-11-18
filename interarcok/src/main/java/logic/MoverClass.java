@@ -45,6 +45,8 @@ public class MoverClass
 
 			for( int i = 0; i < route.size() - 1; ++i )
 			{
+				System.out.println("Arrived" + route.get(i).getName());
+
 				boolean needNext = false;
 				for( int j = 0; j < ss.packages.size() ; )
 				{
@@ -75,7 +77,12 @@ public class MoverClass
 
 				if( needNext )
 				{
+					System.out.println("Next station (" + route.get(i+1).getName() + ")" );
 					Thread.sleep(c.go(route.get(i+1).getName()));
+				}
+				else
+				{
+					System.out.println("No needed next station (" + route.get(i+1).getName() + ") - skipping" );
 				}
 			}
 		}

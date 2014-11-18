@@ -30,6 +30,7 @@ public class SpaceShip
 			tmp = whereIs.getString("planetName");
 			if( tmp != null && !tmp.equals("null") )
 			{
+				System.out.println(whereIs);
 				planet = planets.get(tmp);
 			}
 			else

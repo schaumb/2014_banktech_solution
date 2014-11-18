@@ -27,7 +27,7 @@ public class Communication
 		ping();
 	}
 
-	private void buildConnection(HttpURLConnection connection, String method) throws Exception
+	private void buildConnection(HttpURLConnection connection, String method, String ifWeWrite) throws Exception
 	{
 		while(System.currentTimeMillis() - lastSended < 500)
 		{
@@ -38,9 +38,19 @@ public class Communication
 		connection.setRequestMethod(method);
 		connection.setUseCaches(false);
 		connection.setDoOutput(true);
+
+		if( ifWeWrite != null )
+		{
+			byte[] postDataBytes = ifWeWrite.getBytes("UTF-8");
+			connection.setDoInput(true);
+			connection.setRequestProperty("Content-Length", String.valueOf(postDataBytes.length));
+			connection.getOutputStream().write(postDataBytes);
+		}
+
 		connection.connect();
-		System.out.println(connection.getURL());
-		System.out.println(connection.getResponseCode() + " " + connection.getResponseMessage());
+		System.out.print(connection.getURL() + (ifWeWrite==null?"":" ?" + ifWeWrite));
+
+		System.out.println(" - resp : " + connection.getResponseCode() + " " + connection.getResponseMessage());
 
 		switch( connection.getResponseCode() )
 		{
@@ -56,7 +66,7 @@ public class Communication
 		try
 		{
 			HttpURLConnection connection = (HttpURLConnection)(new URL(domain + url).openConnection());
-			buildConnection(connection, "GET");
+			buildConnection(connection, "GET", null);
 			return new JSONObject(new JSONTokener(new BufferedReader(new InputStreamReader(connection.getInputStream()))));
 		}
 		catch (JSONException e)
@@ -84,14 +94,8 @@ public class Communication
 				postData.append('=');
 				postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
 			}
-			byte[] postDataBytes = postData.toString().getBytes("UTF-8");
 
-			connection.setDoInput(true);
-			connection.setRequestProperty("Content-Length", String.valueOf(postDataBytes.length));
-
-			buildConnection(connection, "POST");
-
-			connection.getOutputStream().write(postDataBytes);
+			buildConnection(connection, "POST", postData.toString());
 
 			return new JSONObject(new JSONTokener(new BufferedReader(new InputStreamReader(connection.getInputStream()))));
 		}
