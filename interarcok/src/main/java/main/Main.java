@@ -35,6 +35,10 @@ public class Main
 			{
 				System.out.println( "Delivered packages : " + mc.deliver + ", gotted fee : " + mc.sumFee );
 			}
+			else
+			{
+				System.exit(1);
+			}
 		}
 	}
 }

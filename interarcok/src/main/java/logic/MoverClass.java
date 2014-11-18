@@ -39,6 +39,7 @@ public class MoverClass
 
 		while(true)
 		{
+			System.out.println("New route calculating ...");
 			ArrayList<Planet> route = pg.getShortestPath( g.packages.values() , ss.planet );
 			LinkedList<Package> pckgs = PackageSelector.calculateNeededPackagesToRoute(
 					route,
