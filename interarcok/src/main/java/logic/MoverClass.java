@@ -45,7 +45,7 @@ public class MoverClass
 
 			for( int i = 0; i < route.size() - 1; ++i )
 			{
-				System.out.println("Arrived" + route.get(i).getName());
+				System.out.println("Arrived to " + route.get(i).getName());
 
 				boolean needNext = false;
 				for( int j = 0; j < ss.packages.size() ; )
@@ -53,6 +53,7 @@ public class MoverClass
 					if( ss.packages.get(j).getTarget().equals(route.get(i)) )
 					{
 						Integer gottedFee = c.dropPackage(ss.packages.get(j).getPackageId());
+						g.packages.remove(ss.packages.get(j).getPackageId());
 						System.out.println("Gotted Fee: " + gottedFee);
 						ss.packages.remove(j);
 					}
@@ -68,6 +69,12 @@ public class MoverClass
 				while( pckgs.size() > 0 && pckgs.getFirst().getOrigin().equals(route.get(i)) )
 				{
 					ss.packages.add(pckgs.getFirst());
+
+					if( pckgs.getFirst().getTarget().equals(route.get(i+1)) )
+					{
+						needNext = true;
+					}
+
 					Integer places = c.pickPackage(pckgs.removeFirst().getPackageId());
 					System.out.println("Remaining place: " + places);
 				}

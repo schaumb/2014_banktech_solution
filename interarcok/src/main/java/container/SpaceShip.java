@@ -54,7 +54,9 @@ public class SpaceShip
 				JSONObject pack = pks.getJSONObject(j);
 				Package newPackage = new Package(pack);
 
-				packages.add(newPackage.packageId, newPackage);
+				newPackage.origin = planets.get(newPackage.origin_s);
+				newPackage.target = planets.get(newPackage.target_s);
+				packages.add(newPackage);
 			}
 		}
 		catch(JSONException e)

@@ -9,24 +9,28 @@ import java.util.Collection;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 
-public class PlanetGraph extends SimpleDirectedWeightedGraph<Planet,DefaultWeightedEdge>
+public class PlanetGraph
 {
-	private static final long serialVersionUID = 1L;
 	private static final double magicNumber = Math.sqrt(2) - 1;
+	Collection<Planet> planets;
 
 	public PlanetGraph(Collection<Planet> planets)
 	{
-		super(DefaultWeightedEdge.class);
-		for(Planet p : planets)
-		{
-			addVertex(p);
-		}
+		this.planets = planets;
 	}
 	public ArrayList<Planet> getShortestPath(Collection<Package> packages , Planet from)
 	{
-		for( Planet p1 : vertexSet() )
+		SimpleDirectedWeightedGraph<Planet,DefaultWeightedEdge> graph =
+				new SimpleDirectedWeightedGraph<Planet,DefaultWeightedEdge>(DefaultWeightedEdge.class);
+
+		for( Planet p : planets)
 		{
-			for( Planet p2 : vertexSet() )
+			graph.addVertex(p);
+		}
+
+		for( Planet p1 : graph.vertexSet() )
+		{
+			for( Planet p2 : graph.vertexSet() )
 			{
 				if( !p1.equals(p2) )
 				{
@@ -41,7 +45,7 @@ public class PlanetGraph extends SimpleDirectedWeightedGraph<Planet,DefaultWeigh
 							weight += 1 - plus / upperLimit;
 						}
 					}
-					setEdgeWeight(addEdge(p1, p2),weight);
+					graph.setEdgeWeight(graph.addEdge(p1, p2),weight);
 				}
 			}
 		}
@@ -49,26 +53,26 @@ public class PlanetGraph extends SimpleDirectedWeightedGraph<Planet,DefaultWeigh
 		ArrayList<Planet> planets = new ArrayList<Planet>();
 		planets.add(from);
 		Planet last = from;
-		int size = vertexSet().size();
+		int size = graph.vertexSet().size();
 		// Schaum's Algorithm - directed graph shortest tree that just one route - (Approximation)
 
 		while(planets.size() != size)
 		{
 			Planet next = null;
 			double max = Double.NEGATIVE_INFINITY;
-			for( DefaultWeightedEdge dwe : outgoingEdgesOf(last) )
+			for( DefaultWeightedEdge dwe : graph.outgoingEdgesOf(last) )
 			{
-				if( getEdgeWeight(dwe) > max && !planets.contains(getEdgeTarget(dwe)) )
+				if( graph.getEdgeWeight(dwe) > max && !planets.contains(graph.getEdgeTarget(dwe)) )
 				{
-					next = getEdgeTarget(dwe);
-					max = getEdgeWeight(dwe);
+					next = graph.getEdgeTarget(dwe);
+					max = graph.getEdgeWeight(dwe);
 				}
 			}
 			if( next == null )
 			{
 				double min = Double.POSITIVE_INFINITY;
 
-				for( Planet p : vertexSet() )
+				for( Planet p : graph.vertexSet() )
 				{
 					double dist = p.distance(last);
 					if( dist < min && !planets.contains(p) )
@@ -80,11 +84,6 @@ public class PlanetGraph extends SimpleDirectedWeightedGraph<Planet,DefaultWeigh
 			}
 			planets.add(next);
 			last = next;
-		}
-
-		for( DefaultWeightedEdge edge : edgeSet() )
-		{
-			removeEdge(edge);
 		}
 
 		return planets;
