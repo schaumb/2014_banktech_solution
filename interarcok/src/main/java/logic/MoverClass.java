@@ -52,7 +52,8 @@ public class MoverClass
 				{
 					if( ss.packages.get(j).getTarget().equals(route.get(i)) )
 					{
-						c.dropPackage(ss.packages.get(j).getPackageId());
+						Integer gottedFee = c.dropPackage(ss.packages.get(j).getPackageId());
+						System.out.println("Gotted Fee: " + gottedFee);
 						ss.packages.remove(j);
 					}
 					else
@@ -67,7 +68,8 @@ public class MoverClass
 				while( pckgs.size() > 0 && pckgs.getFirst().getOrigin().equals(route.get(i)) )
 				{
 					ss.packages.add(pckgs.getFirst());
-					c.pickPackage(pckgs.removeFirst().getPackageId());
+					Integer places = c.pickPackage(pckgs.removeFirst().getPackageId());
+					System.out.println("Remaining place: " + places);
 				}
 
 				if( pckgs.size() > 0 && pckgs.getFirst().getOrigin().equals(route.get(i+1)) )
@@ -77,12 +79,12 @@ public class MoverClass
 
 				if( needNext )
 				{
-					System.out.println("Next station (" + route.get(i+1).getName() + ")" );
+					System.out.println("Next station is " + route.get(i+1).getName() );
 					Thread.sleep(c.go(route.get(i+1).getName()));
 				}
 				else
 				{
-					System.out.println("No needed next station (" + route.get(i+1).getName() + ") - skipping" );
+					System.out.println("No needed the next station - " + route.get(i+1).getName() + " - skipping" );
 				}
 			}
 		}
