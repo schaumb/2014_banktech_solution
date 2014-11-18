@@ -92,6 +92,7 @@ public class MoverClass
 
 				if( needNext )
 				{
+					ss.planet = route.get(i+1);
 					System.out.println("Next station is " + route.get(i+1).getName() );
 					Thread.sleep(c.go(route.get(i+1).getName()));
 				}
