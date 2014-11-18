@@ -19,6 +19,24 @@ public class Communication
 	private String encoded;
 	private Long lastSended = System.currentTimeMillis();
 
+	public class EndOfGameException extends Error
+	{
+		private String message;
+
+		public EndOfGameException(String string)
+		{
+			message = string;
+		}
+
+		public String getMessage()
+		{
+			return message;
+		}
+
+		private static final long serialVersionUID = 1L;
+
+	}
+
 	public Communication(String url, String auth)
 	{
 		this.domain = url;
@@ -113,8 +131,7 @@ public class Communication
 
 	public void game_over(String message)
 	{
-		System.out.println("Exit - " + message);
-		System.exit(0);
+		throw new EndOfGameException("Exit - " + message);
 	}
 
 	private void ping()

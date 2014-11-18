@@ -14,6 +14,8 @@ public class MoverClass
 	Galaxy g;
 	SpaceShip ss;
 	PlanetGraph pg;
+	public int sumFee = 0;
+	public int deliver = 0;
 
 	public MoverClass(Communication c)
 	{
@@ -56,6 +58,9 @@ public class MoverClass
 						g.packages.remove(ss.packages.get(j).getPackageId());
 						System.out.println("Gotted Fee: " + gottedFee);
 						ss.packages.remove(j);
+
+						sumFee += gottedFee;
+						++deliver;
 					}
 					else
 					{
