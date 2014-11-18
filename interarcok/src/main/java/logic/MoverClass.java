@@ -55,7 +55,6 @@ public class MoverClass
 					if( ss.packages.get(j).getTarget().equals(route.get(i)) )
 					{
 						Integer gottedFee = c.dropPackage(ss.packages.get(j).getPackageId());
-						g.packages.remove(ss.packages.get(j).getPackageId());
 						System.out.println("Gotted Fee: " + gottedFee);
 						ss.packages.remove(j);
 
@@ -74,6 +73,7 @@ public class MoverClass
 				while( pckgs.size() > 0 && pckgs.getFirst().getOrigin().equals(route.get(i)) )
 				{
 					ss.packages.add(pckgs.getFirst());
+					g.packages.remove(pckgs.getFirst().getPackageId());
 
 					if( pckgs.getFirst().getTarget().equals(route.get(i+1)) )
 					{

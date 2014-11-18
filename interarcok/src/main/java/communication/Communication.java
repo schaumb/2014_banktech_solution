@@ -73,6 +73,7 @@ public class Communication
 		switch( connection.getResponseCode() )
 		{
 			case 503 : game_over("END OF GAME");
+			case 403 : game_over("MAYBE ANOTHER?");
 		}
 
 		lastSended = System.currentTimeMillis();
