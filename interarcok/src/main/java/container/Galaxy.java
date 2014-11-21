@@ -1,8 +1,12 @@
 package container;
 
 import java.awt.geom.Point2D;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.TreeSet;
+
+import logic.PlanetGraph;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -10,13 +14,10 @@ import org.json.JSONException;
 
 public class Galaxy
 {
-	public static class Package implements Comparable<Package>
+	public static class Package
 	{
 		public Package(JSONObject pack)
 		{
-			System.out.println(pack.toString());
-
-			System.out.println("Gotted package ID : " + pack.getInt("packageId"));
 			packageId = pack.getInt("packageId");
 			origin_s = pack.getString("originalPlanet");
 			target_s = pack.getString("targetPlanet");
@@ -28,16 +29,11 @@ public class Galaxy
 		Planet target;
 		String origin_s;
 		String target_s;
-		public Integer fee;
+		Integer fee;
 
 		public double pathLength()
 		{
 			return origin.distance(target);
-		}
-
-		public double idleLength(Package p2)
-		{
-			return target.distance(p2.origin);
 		}
 
 		public Planet getOrigin() {
@@ -52,17 +48,14 @@ public class Galaxy
 			return packageId;
 		}
 
+		public Integer getFee() {
+			return fee;
+		}
+
+
 		@Override
 		public int hashCode() {
-			final int prime = 71;
-			int result = 1;
-			result = prime * result
-					+ ((origin_s == null) ? 0 : origin_s.hashCode());
-			result = prime * result
-					+ ((packageId == null) ? 0 : packageId.hashCode());
-			result = prime * result
-					+ ((target_s == null) ? 0 : target_s.hashCode());
-			return result;
+			return packageId;
 		}
 		@Override
 		public boolean equals(Object obj) {
@@ -72,22 +65,23 @@ public class Galaxy
 				return false;
 
 			Package other = (Package) obj;
-			if (!Objects.equals(origin_s, other.origin_s) ||
-					!Objects.equals(packageId, other.packageId) ||
-					!Objects.equals(target_s, other.target_s))
-				return false;
-
-			return true;
-		}
-
-		@Override
-		public int compareTo(Package o) {
-			return packageId.compareTo(o.packageId);
+			return Objects.equals(packageId, other.packageId);
 		}
 	}
 
-	public static class Planet implements Comparable<Planet>
+	public static class Planet
 	{
+		public class PackageSort implements Comparator<Package>
+		{
+			@Override
+			public int compare(Package o1, Package o2) {
+				double d1 = PlanetGraph.getDist(Planet.this, o1.getTarget());
+				double d2 = PlanetGraph.getDist(Planet.this, o2.getTarget());
+				if( d1 != d2 ) return (int)Math.signum(d1 - d2);
+				return o1.packageId.compareTo(o2.packageId);
+			}
+		}
+
 		public Planet(JSONObject planet)
 		{
 			name = planet.getString("name");
@@ -98,6 +92,7 @@ public class Galaxy
 
 		String name;
 		Point2D coord;
+		public TreeSet<Package> packages = new TreeSet<Package>(new PackageSort());
 
 		public Double distance(Planet p2)
 		{
@@ -130,13 +125,6 @@ public class Galaxy
 
 			return true;
 		}
-
-		@Override
-		public int compareTo(Planet o) {
-			return name.compareTo(o.name);
-		}
-
-
 	}
 
 	public HashMap<Integer, Package> packages = new HashMap<Integer, Package>();
@@ -163,10 +151,15 @@ public class Galaxy
 					packages.put(newPackage.packageId, newPackage);
 				}
 			}
+
+			PlanetGraph.setDistances(this.planets.values());
+
 			for( Package e : packages.values() )
 			{
 				e.origin = planets.get(e.origin_s);
 				e.target = planets.get(e.target_s);
+
+				e.origin.packages.add(e);
 			}
 			System.out.println("Planets size: " + planets.size());
 			System.out.println("Packages size: " + packages.size());

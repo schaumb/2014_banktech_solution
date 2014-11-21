@@ -1,5 +1,6 @@
 package communication;
 
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -47,37 +48,46 @@ public class Communication
 
 	private void buildConnection(HttpURLConnection connection, String method, String ifWeWrite) throws Exception
 	{
-		while(System.currentTimeMillis() - lastSended < 500)
+		try
 		{
-			Thread.sleep(500 - System.currentTimeMillis() + lastSended);
+			while(System.currentTimeMillis() - lastSended < 500)
+			{
+				Thread.sleep(500 - System.currentTimeMillis() + lastSended);
+			}
+
+			System.out.print(connection.getURL() + (ifWeWrite==null?"":" ?" + ifWeWrite));
+
+			connection.setRequestProperty  ("Authorization", "Basic " + encoded);
+			connection.setRequestMethod(method);
+			connection.setUseCaches(false);
+			connection.setDoOutput(true);
+
+			if( ifWeWrite != null )
+			{
+				byte[] postDataBytes = ifWeWrite.getBytes("UTF-8");
+				connection.setDoInput(true);
+				connection.setRequestProperty("Content-Length", String.valueOf(postDataBytes.length));
+				connection.getOutputStream().write(postDataBytes);
+			}
+
+			connection.connect();
+
+			System.out.println(" - resp : " + connection.getResponseCode() + " " + connection.getResponseMessage());
+
+			switch( connection.getResponseCode() )
+			{
+				case 503 : game_over("END OF GAME");
+				case 403 : game_over("MAYBE ANOTHER?");
+			}
+
+			lastSended = System.currentTimeMillis();
 		}
-
-		connection.setRequestProperty  ("Authorization", "Basic " + encoded);
-		connection.setRequestMethod(method);
-		connection.setUseCaches(false);
-		connection.setDoOutput(true);
-
-		if( ifWeWrite != null )
+		catch(ConnectException ex)
 		{
-			byte[] postDataBytes = ifWeWrite.getBytes("UTF-8");
-			connection.setDoInput(true);
-			connection.setRequestProperty("Content-Length", String.valueOf(postDataBytes.length));
-			connection.getOutputStream().write(postDataBytes);
+			System.err.println("Catched Exception (let's try again) : " + ex.toString() );
+			buildConnection( (HttpURLConnection)(new URL(connection.getURL().toExternalForm()).openConnection()) ,
+					method , ifWeWrite );
 		}
-
-		connection.connect();
-		System.out.print(connection.getURL() + (ifWeWrite==null?"":" ?" + ifWeWrite));
-
-		System.out.println(" - resp : " + connection.getResponseCode() + " " + connection.getResponseMessage());
-
-		switch( connection.getResponseCode() )
-		{
-			case 503 : game_over("END OF GAME");
-			case 403 : game_over("MAYBE ANOTHER?");
-		}
-
-		lastSended = System.currentTimeMillis();
-
 	}
 
 	private JSONObject getStuff(String url)
