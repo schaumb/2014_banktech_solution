@@ -96,6 +96,10 @@ public class MoverClass
 			{
 				width += r.sumFee / PlanetGraph.getDist(r.from, r.to) * (170 - 20 * r.count);
 			}
+			if(route.size()>0)
+			{
+				width /= (double)route.size();
+			}
 		}
 
 		public ArrayList<Package> newby(Planet pl)
@@ -165,7 +169,6 @@ public class MoverClass
 			prevs.addFirst(p);
 
 			WidthClass test = new WidthClass(base,prevs);
-			System.out.println("Az eredeti: " + max.width + " az uj:" + test.width);
 			if(max.width < test.width )
 			{
 				max = test;
@@ -206,8 +209,11 @@ public class MoverClass
 				ss.packages.remove(p);
 				sumFee += p.getFee();
 				++deliver;
+				System.out.println("Got fee : " + p.getFee() + " sum: " + sumFee);
 			}
+			System.out.print("Az eredeti: " + wc.width);
 			wc = calcMax(ss.planet.packages, wc, new LinkedList<Package>(), 3-wc.packages.size());
+			System.out.println(" az uj:" + wc.width);
 
 			ArrayList<Package> news = wc.newby(ss.planet);
 
