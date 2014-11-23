@@ -119,7 +119,12 @@ public class MoverClass
 
 		public Planet getNextStation()
 		{
-			return route.getFirst().to;
+			if(route.size() > 0)
+			{
+				return route.getFirst().to;
+			}
+
+			return null;
 		}
 
 		public ArrayList<Package> next()
@@ -225,7 +230,26 @@ public class MoverClass
 				ss.planet.packages.remove(p);
 			}
 
-			ss.planet = wc.getNextStation();
+			if(wc.getNextStation() == null)
+			{
+				double min = Double.POSITIVE_INFINITY;
+				Planet maybeNext = ss.planet;
+				for(DefaultWeightedEdge edge : PlanetGraph.distances.outgoingEdgesOf(ss.planet))
+				{
+					Planet perhapsNext = PlanetGraph.distances.getEdgeTarget(edge);
+					if(perhapsNext.packages.size() > 0 &&
+							PlanetGraph.distances.getEdgeWeight(edge) < min)
+					{
+						min = PlanetGraph.distances.getEdgeWeight(edge);
+						maybeNext = perhapsNext;
+					}
+				}
+				ss.planet = maybeNext;
+			}
+			else
+			{
+				ss.planet = wc.getNextStation();
+			}
 			Thread.sleep(c.go(ss.planet.getName()));
 		}
 	}
