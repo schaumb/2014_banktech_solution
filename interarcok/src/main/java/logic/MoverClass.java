@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeSet;
 
+import org.jgrapht.graph.DefaultWeightedEdge;
 import communication.Communication;
 import container.Galaxy;
 import container.Galaxy.Package;
