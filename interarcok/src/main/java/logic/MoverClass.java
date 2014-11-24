@@ -128,7 +128,7 @@ public class MoverClass
 			return null;
 		}
 
-		public ArrayList<Package> next()
+		public ArrayList<Package> next(Planet plan)
 		{
 			ArrayList<Package> res = new ArrayList<Package>();
 
@@ -136,6 +136,8 @@ public class MoverClass
 
 			Route r = route.removeFirst();
 			Planet target = r.to;
+
+			if(!plan.equals(target)) return res;
 
 			for(Package p : packages)
 			{
@@ -208,7 +210,7 @@ public class MoverClass
 
 		while(true)
 		{
-			ArrayList<Package> deleted = wc.next();
+			ArrayList<Package> deleted = wc.next(ss.planet);
 			for(Package p : deleted)
 			{
 				c.dropPackage(p.getPackageId());

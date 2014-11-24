@@ -7,6 +7,8 @@ import java.net.URLEncoder;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.io.InputStream;
+import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import org.json.JSONObject;
@@ -19,6 +21,7 @@ public class Communication
 	private String domain;
 	private String encoded;
 	private Long lastSended = System.currentTimeMillis();
+	private Integer minWait = 501; 
 
 	public class EndOfGameException extends Error
 	{
@@ -46,13 +49,13 @@ public class Communication
 		ping();
 	}
 
-	private void buildConnection(HttpURLConnection connection, String method, String ifWeWrite) throws Exception
+	private InputStream buildConnection(HttpURLConnection connection, String method, String ifWeWrite) throws Exception
 	{
 		try
 		{
-			while(System.currentTimeMillis() - lastSended < 500)
+			while(System.currentTimeMillis() - lastSended < minWait)
 			{
-				Thread.sleep(500 - System.currentTimeMillis() + lastSended);
+				Thread.sleep(minWait - System.currentTimeMillis() + lastSended);
 			}
 
 			System.out.print(connection.getURL() + (ifWeWrite==null?"":" ?" + ifWeWrite));
@@ -76,16 +79,29 @@ public class Communication
 
 			switch( connection.getResponseCode() )
 			{
-				case 503 : game_over("END OF GAME");
+				case 503 : game_over("END OF GAME"); System.exit(0);
 				case 403 : game_over("MAYBE ANOTHER?");
 			}
 
+			InputStream result = connection.getInputStream();
+
 			lastSended = System.currentTimeMillis();
+
+			return result;
 		}
 		catch(ConnectException ex)
 		{
-			System.err.println("Catched Exception (let's try again) : " + ex.toString() );
-			buildConnection( (HttpURLConnection)(new URL(connection.getURL().toExternalForm()).openConnection()) ,
+			lastSended = System.currentTimeMillis();
+			System.err.println("Catched ConnectException (let's try again) : " + ex.toString() );
+			return buildConnection( (HttpURLConnection)(new URL(connection.getURL().toExternalForm()).openConnection()) ,
+					method , ifWeWrite );
+		}
+		catch(IOException ex)
+		{
+			++minWait;
+			lastSended = System.currentTimeMillis();
+			System.err.println("Catched IOException (let's try again after "+minWait+" ms) : " + ex.toString() );
+			return buildConnection( (HttpURLConnection)(new URL(connection.getURL().toExternalForm()).openConnection()) ,
 					method , ifWeWrite );
 		}
 	}
@@ -95,8 +111,7 @@ public class Communication
 		try
 		{
 			HttpURLConnection connection = (HttpURLConnection)(new URL(domain + url).openConnection());
-			buildConnection(connection, "GET", null);
-			return new JSONObject(new JSONTokener(new BufferedReader(new InputStreamReader(connection.getInputStream()))));
+			return new JSONObject(new JSONTokener(new BufferedReader(new InputStreamReader(buildConnection(connection, "GET", null)))));
 		}
 		catch (JSONException e)
 		{
@@ -124,9 +139,7 @@ public class Communication
 				postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
 			}
 
-			buildConnection(connection, "POST", postData.toString());
-
-			return new JSONObject(new JSONTokener(new BufferedReader(new InputStreamReader(connection.getInputStream()))));
+			return new JSONObject(new JSONTokener(new BufferedReader(new InputStreamReader(buildConnection(connection, "POST", postData.toString())))));
 		}
 		catch (JSONException e)
 		{
@@ -142,7 +155,8 @@ public class Communication
 
 	public void game_over(String message)
 	{
-		throw new EndOfGameException("Exit - " + message);
+		System.err.println("We need exit, but... - " + message);
+		//throw new EndOfGameException("Exit - " + message);
 	}
 
 	private void ping()
@@ -175,8 +189,9 @@ public class Communication
 			case "UNKNOWN_PLANET" :
 				game_over("Logical problem in go function - destiny : " + planetName +
 						" but getted code " + res.getString("status"));
+				break;
 			case "MOVING" :
-				return res.getInt("arriveAfterMs");
+				return res.getInt("arriveAfterMs") + 1;
 			}
 		}
 		catch(JSONException e)
@@ -184,7 +199,7 @@ public class Communication
 			game_over("Respond problem in go function - destiny : " + planetName +
 					" but got JSONException "+ e.toString());
 		}
-		return -1;
+		return 0;
 	}
 
 	public Integer pickPackage(final Integer packageId)
@@ -202,6 +217,7 @@ public class Communication
 			case "USER_NOT_ON_THE_PLANET" :
 				game_over("Logical problem in pickPackage function - packageId : " + packageId +
 						" but getted code " + res.getString("status"));
+				break;
 			case "PACKAGE_PICKED" :
 				return res.getInt("remainingCapacity");
 			}
@@ -211,7 +227,7 @@ public class Communication
 			game_over("Respond problem in pickPackage function - packageId : " + packageId +
 					" but got JSONException "+ e.toString());
 		}
-		return 0;
+		return -1;
 	}
 
 	public Integer dropPackage(final Integer packageId)
@@ -228,6 +244,7 @@ public class Communication
 			case "NOT_AT_DESTINATION" :
 				game_over("Logical problem in dropPackage function - packageId : " + packageId +
 						" but getted code " + res.getString("status"));
+				break;
 			case "PACKAGE_DROPPED" :
 				return res.getInt("scoreIncrease");
 			}
