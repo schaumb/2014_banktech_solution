@@ -11,35 +11,21 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.json.JSONException;
 import container.Galaxy;
+import container.MySpaceShips;
+import container.TheySpaceShips;
 
 public class Communication
 {
 	private String domain;
 	private String encoded;
 	private Long lastSended = System.currentTimeMillis();
-	private Integer minWait = 501; 
-
-	public class EndOfGameException extends Error
-	{
-		private String message;
-
-		public EndOfGameException(String string)
-		{
-			message = string;
-		}
-
-		public String getMessage()
-		{
-			return message;
-		}
-
-		private static final long serialVersionUID = 1L;
-
-	}
+	private Integer minWait = 101;
 
 	public Communication(String url, String auth)
 	{
@@ -49,7 +35,7 @@ public class Communication
 		ping();
 	}
 
-	private InputStream buildConnection(HttpURLConnection connection, String method, String ifWeWrite) throws Exception
+	private JSONObject buildConnection(String url, String method, HashMap<String,String> params) throws JSONException
 	{
 		try
 		{
@@ -57,17 +43,19 @@ public class Communication
 			{
 				Thread.sleep(minWait - System.currentTimeMillis() + lastSended);
 			}
+			String outParams = paramsToString(params);
+			HttpURLConnection connection = (HttpURLConnection)(new URL(domain + url).openConnection());
 
-			System.out.print(connection.getURL() + (ifWeWrite==null?"":" ?" + ifWeWrite));
+			System.out.print(connection.getURL() + (outParams==null?"":" ?" + outParams));
 
 			connection.setRequestProperty  ("Authorization", "Basic " + encoded);
 			connection.setRequestMethod(method);
 			connection.setUseCaches(false);
 			connection.setDoOutput(true);
 
-			if( ifWeWrite != null )
+			if( outParams != null )
 			{
-				byte[] postDataBytes = ifWeWrite.getBytes("UTF-8");
+				byte[] postDataBytes = outParams.getBytes("UTF-8");
 				connection.setDoInput(true);
 				connection.setRequestProperty("Content-Length", String.valueOf(postDataBytes.length));
 				connection.getOutputStream().write(postDataBytes);
@@ -79,181 +67,239 @@ public class Communication
 
 			switch( connection.getResponseCode() )
 			{
-				case 503 : game_over("END OF GAME"); System.exit(0);
-				case 403 : game_over("MAYBE ANOTHER?");
+				case 503 : System.out.println("503 - end of game"); System.exit(0);
+				case 403 : System.out.println("403 - quick sending"); break;
+				case 423 : System.out.println("423 - stucked :("); break;
 			}
 
 			InputStream result = connection.getInputStream();
 
 			lastSended = System.currentTimeMillis();
 
-			return result;
+			return new JSONObject(
+					new JSONTokener(
+							new BufferedReader(
+									new InputStreamReader(result))));
 		}
 		catch(ConnectException ex)
 		{
 			lastSended = System.currentTimeMillis();
 			System.err.println("Catched ConnectException (let's try again) : " + ex.toString() );
-			return buildConnection( (HttpURLConnection)(new URL(connection.getURL().toExternalForm()).openConnection()) ,
-					method , ifWeWrite );
+			return buildConnection( url , method , params );
 		}
 		catch(IOException ex)
 		{
 			++minWait;
 			lastSended = System.currentTimeMillis();
 			System.err.println("Catched IOException (let's try again after "+minWait+" ms) : " + ex.toString() );
-			return buildConnection( (HttpURLConnection)(new URL(connection.getURL().toExternalForm()).openConnection()) ,
-					method , ifWeWrite );
+			return buildConnection( url , method , params );
+		}
+		catch (InterruptedException ex)
+		{
+			System.err.println("Catched InterruptedException (let's try again) : " + ex.toString() );
+			return buildConnection( url , method , params );
 		}
 	}
 
-	private JSONObject getStuff(String url)
+	private String paramsToString(HashMap<String,String> params) throws UnsupportedEncodingException
 	{
-		try
-		{
-			HttpURLConnection connection = (HttpURLConnection)(new URL(domain + url).openConnection());
-			return new JSONObject(new JSONTokener(new BufferedReader(new InputStreamReader(buildConnection(connection, "GET", null)))));
-		}
-		catch (JSONException e)
-		{
-			System.err.println("catched: " + e.toString());
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
+		if(params == null) return null;
 
-		return null;
-	}
-	private JSONObject sendStuff(String url, HashMap<String,String> params)
-	{
-		try
+		StringBuilder postData = new StringBuilder();
+		for (Map.Entry<String,String> param : params.entrySet())
 		{
-			HttpURLConnection connection = (HttpURLConnection)(new URL(domain + url).openConnection());
-
-			StringBuilder postData = new StringBuilder();
-			for (Map.Entry<String,String> param : params.entrySet())
-			{
-				if (postData.length() != 0) postData.append('&');
-				postData.append(URLEncoder.encode(param.getKey(), "UTF-8"));
-				postData.append('=');
-				postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
-			}
-
-			return new JSONObject(new JSONTokener(new BufferedReader(new InputStreamReader(buildConnection(connection, "POST", postData.toString())))));
+			if (postData.length() != 0) postData.append('&');
+			postData.append(URLEncoder.encode(param.getKey(), "UTF-8"));
+			postData.append('=');
+			postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
 		}
-		catch (JSONException e)
-		{
-			System.err.println("catched: " + e.toString());
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-
-		return null;
-	}
-
-	public void game_over(String message)
-	{
-		System.err.println("We need exit, but... - " + message);
-		//throw new EndOfGameException("Exit - " + message);
+		return postData.toString();
 	}
 
 	private void ping()
 	{
-		getStuff("/JavaChallenge1/rest/ping");
+		try
+		{
+			buildConnection("/JavaChallenge2/rest/ping", "GET", null);
+		}
+		catch (JSONException e)
+		{
+			// that's ok, we are expecting this
+		}
 	}
 
 	public Galaxy getGalaxy()
 	{
-		return new Galaxy(getStuff("/JavaChallenge1/rest/getGalaxy"));
-	}
-
-	public /*??*/ JSONObject whereIs()
-	{
-		/*JSONObject res =*/ return getStuff("/JavaChallenge1/rest/whereIs");
-	}
-
-	public Integer go(final String planetName)
-	{
-		JSONObject res = sendStuff("/JavaChallenge1/rest/go", new HashMap<String,String>(){
-			private static final long serialVersionUID = 1L;
-		{ put("planetName",planetName); }} );
-
 		try
 		{
+			return new Galaxy(buildConnection("/JavaChallenge2/rest/getGalaxy", "GET", null));
+		}
+		catch (JSONException e)
+		{
+			System.out.println("JsonBug getGalaxy");
+			e.printStackTrace();
+			System.exit(1);
+		}
+		return null;
+	}
+
+	public MySpaceShips whereIs()
+	{
+		try
+		{
+			return new MySpaceShips(buildConnection("/JavaChallenge2/rest/whereIs", "GET", null));
+		}
+		catch (JSONException e)
+		{
+			System.out.println("JsonBug whereIs");
+			e.printStackTrace();
+			System.exit(1);
+		}
+		return null;
+	}
+
+	public TheySpaceShips whereAre()
+	{
+		try
+		{
+			return new TheySpaceShips(buildConnection("/JavaChallenge2/rest/whereAre", "GET", null));
+		}
+		catch (JSONException e)
+		{
+			System.out.println("JsonBug whereAre");
+			e.printStackTrace();
+			System.exit(1);
+		}
+		return null;
+	}
+
+	public Integer go(final String planetName, final Integer shipNum)
+	{
+		try
+		{
+			JSONObject res = buildConnection("/JavaChallenge2/rest/go", "POST",
+					new HashMap<String,String>(){
+				private static final long serialVersionUID = 1L;
+					{ put("planetName",planetName);
+					  put("shipNum",shipNum.toString());
+					}} );
+
 			switch(res.getString("status"))
 			{
-			case "ALREADY_MOVING" :
-			case "NOTHING_TO_DO" :
-			case "UNKNOWN_PLANET" :
-				game_over("Logical problem in go function - destiny : " + planetName +
-						" but getted code " + res.getString("status"));
-				break;
 			case "MOVING" :
 				return res.getInt("arriveAfterMs") + 1;
+			default:
+				System.out.println("Logical problem in go function -" +
+						" destiny : " + planetName +
+						" shipNum : " + shipNum +
+						" but got code " + res.getString("status"));
+				break;
 			}
 		}
 		catch(JSONException e)
 		{
-			game_over("Respond problem in go function - destiny : " + planetName +
-					" but got JSONException "+ e.toString());
+			System.out.println("Respond problem in go function -" +
+						" destiny : " + planetName +
+						" shipNum : " + shipNum +
+						" but got JSONException "+ e.toString());
 		}
-		return 0;
+		return -1; // exception - we are expecting bomb
 	}
 
-	public Integer pickPackage(final Integer packageId)
+	public Integer pickPackage(final Integer packageId, final Integer shipNum)
 	{
-		JSONObject res = sendStuff("/JavaChallenge1/rest/pickPackage", new HashMap<String,String>(){
-			private static final long serialVersionUID = 1L;
-		{ put("packageId",packageId.toString()); }} );
-
 		try
 		{
+			JSONObject res = buildConnection("/JavaChallenge2/rest/pickPackage", "POST",
+					new HashMap<String,String>(){
+				private static final long serialVersionUID = 1L;
+					{ put("packageId",packageId.toString());
+					  put("shipNum",shipNum.toString());
+					}} );
+
 			switch(res.getString("status"))
 			{
-			case "NOT_FOUND" :
-			case "LIMIT_EXCEEDED" :
-			case "USER_NOT_ON_THE_PLANET" :
-				game_over("Logical problem in pickPackage function - packageId : " + packageId +
-						" but getted code " + res.getString("status"));
-				break;
 			case "PACKAGE_PICKED" :
 				return res.getInt("remainingCapacity");
+			default:
+				System.out.println("Logical problem in pickPackage function -" +
+						" packageId : " + packageId +
+						" shipNum : " + shipNum +
+						" but got code " + res.getString("status"));
+				break;
 			}
 		}
 		catch(JSONException e)
 		{
-			game_over("Respond problem in pickPackage function - packageId : " + packageId +
+			System.out.println("Respond problem in pickPackage function -" +
+					" packageId : " + packageId +
+					" shipNum : " + shipNum +
 					" but got JSONException "+ e.toString());
 		}
 		return -1;
 	}
 
-	public Integer dropPackage(final Integer packageId)
+	public Integer dropPackage(final Integer shipNum)
 	{
-		JSONObject res = sendStuff("/JavaChallenge1/rest/dropPackage", new HashMap<String,String>(){
-			private static final long serialVersionUID = 1L;
-		{ put("packageId",packageId.toString()); }} );
 
 		try
 		{
+			JSONObject res = buildConnection("/JavaChallenge2/rest/dropPackage", "POST",
+					new HashMap<String,String>(){
+				private static final long serialVersionUID = 1L;
+					{ put("shipNum",shipNum.toString()); }} );
+
 			switch(res.getString("status"))
 			{
-			case "NOT_WITH_USER" :
-			case "NOT_AT_DESTINATION" :
-				game_over("Logical problem in dropPackage function - packageId : " + packageId +
-						" but getted code " + res.getString("status"));
-				break;
 			case "PACKAGE_DROPPED" :
 				return res.getInt("scoreIncrease");
+			default:
+				System.out.println("Logical problem in dropPackage function -" +
+						" shipNum : " + shipNum +
+						" but got code " + res.getString("status"));
+				break;
 			}
 		}
 		catch(JSONException e)
 		{
-			game_over("Respond problem in dropPackage function - packageId : " + packageId +
+			System.out.println("Respond problem in dropPackage function -" +
+					" shipNum : " + shipNum +
 					" but got JSONException "+ e.toString());
 		}
 		return 0;
 	}
+
+	public Integer installMine(final String planetName, final Integer shipNum)
+	{
+		try
+		{
+			JSONObject res = buildConnection("/JavaChallenge2/rest/installMine", "POST",
+					new HashMap<String,String>(){
+				private static final long serialVersionUID = 1L;
+					{ put("planetName",planetName);
+					  put("shipNum",shipNum.toString());
+					}} );
+
+			switch(res.getString("status"))
+			{
+			case "INSTALLED" :
+				return res.getInt("remaining");
+			default:
+				System.out.println("Logical problem in installMine function -" +
+						" destiny : " + planetName +
+						" shipNum : " + shipNum +
+						" but got code " + res.getString("status"));
+				break;
+			}
+		}
+		catch(JSONException e)
+		{
+			System.out.println("Respond problem in installMine function -" +
+						" destiny : " + planetName +
+						" shipNum : " + shipNum +
+						" but got JSONException "+ e.toString());
+		}
+		return -1; // exception - we are expecting bomb
+	}
+
 }
