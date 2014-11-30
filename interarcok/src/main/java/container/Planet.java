@@ -1,6 +1,7 @@
 package container;
 
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
 import java.util.Objects;
 
 import org.json.JSONArray;
@@ -25,14 +26,16 @@ public class Planet
 			{
 				JSONObject pack = pks.getJSONObject(j);
 
-				new Package(pack, false);
+				pkgs.add(new Package(pack, false));
 			}
 		}
 	}
 
 	String name;
 	Point2D coord;
-	Owner owned;
+	public Owner owned;
+	Boolean hasmine = false;
+	ArrayList<Package> pkgs = new ArrayList<Package>();
 
 	public Double distance(Planet p2)
 	{

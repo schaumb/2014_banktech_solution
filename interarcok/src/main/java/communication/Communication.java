@@ -25,7 +25,7 @@ public class Communication
 	private static Long lastSended = System.currentTimeMillis();
 	private static Integer minWait = 101;
 
-	private static JSONObject buildConnection(String url, String method, HashMap<String,String> params) throws JSONException
+	private static synchronized JSONObject buildConnection(String url, String method, HashMap<String,String> params) throws JSONException
 	{
 		try
 		{
@@ -217,6 +217,8 @@ public class Communication
 			{
 			case "PACKAGE_PICKED" :
 				return res.getInt("remainingCapacity");
+			case "NOT_FOUND":
+				return -2;
 			default:
 				System.out.println("Logical problem in pickPackage function -" +
 						" packageId : " + packageId +
@@ -249,6 +251,8 @@ public class Communication
 			{
 			case "PACKAGE_DROPPED" :
 				return res.getInt("scoreIncrease");
+			case "ALREADY_OCCUPIED" :
+				return -2;
 			default:
 				System.out.println("Logical problem in dropPackage function -" +
 						" shipNum : " + shipNum +

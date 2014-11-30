@@ -8,14 +8,14 @@ public class SpaceShip
 	public Owner team;
 	public Planet planet = null;
 	public Planet targetPlanet = null;
-	public Integer arriveAfterMs;
+	public Long arriveWhen;
 	public Package pack = null;
 	public Integer shipNum;
 
 	public SpaceShip( Owner team, JSONObject ss ) throws JSONException
 	{
 		this.team = team;
-		arriveAfterMs = ss.optInt("arriveAfterMs", 0);
+		arriveWhen = System.currentTimeMillis() + ss.optLong("arriveAfterMs", 0);
 		shipNum = ss.getInt("shipNum");
 
 		String tmp;

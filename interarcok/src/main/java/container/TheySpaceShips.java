@@ -24,14 +24,14 @@ public class TheySpaceShips extends Owner
 	}
 
 	@Override
-	boolean areWe() {
+	public boolean areWe() {
 		return false;
 	}
 
 	ArrayList<SpaceShip> theyShips = new ArrayList<SpaceShip>();
 
 	@Override
-	ArrayList<SpaceShip> ships()
+	public ArrayList<SpaceShip> ships()
 	{
 		return theyShips;
 	}

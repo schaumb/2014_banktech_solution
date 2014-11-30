@@ -27,10 +27,10 @@ public class Package
 		Galaxy.packages.put(packageId, this);
 	}
 
-	boolean isMoveing;
+	public boolean isMoveing;
 	Integer packageId;
-	Planet lastPlanet;
-	Owner lastOwner = null;
+	public Planet lastPlanet;
+	public Owner lastOwner = null;
 
 	public Integer getPackageId()
 	{
