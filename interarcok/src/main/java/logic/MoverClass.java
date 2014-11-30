@@ -40,7 +40,10 @@ public class MoverClass
 	public void Go() throws InterruptedException
 	{
 		printStatistic();
-		while(true)
+		Communication.getGalaxy();
+		Communication.whereAre();
+
+		for(int i = 0; i < 2; ++i)
 		{
 			Long minWaitingFor = mss.doLogicStuff();
 
@@ -48,9 +51,7 @@ public class MoverClass
 			Long minWaiting = minWaitingFor - now;
 
 			// if fresh data-s, and need to wait
-			if(now - lastGotGalaxy < oldGalaxyData &&
-				now - lastGotWhereAre < oldAreData &&
-				minWaiting > 202)
+			if(minWaiting > 202)
 			{
 				Thread.sleep(minWaiting - 202);
 			}
@@ -69,6 +70,8 @@ public class MoverClass
 				lastGotWhereAre = System.currentTimeMillis();
 			}
 			Loggers.logLogger.info("MinWaiting : " + minWaiting + " reallyWait : " + (System.currentTimeMillis()-now));
+			//if((System.currentTimeMillis()-now) == 0)
+			//	break;
 		}
 	}
 }
