@@ -18,7 +18,8 @@ public class Selector
 			double minDist = Double.POSITIVE_INFINITY;
 			for(Entry<String, Planet> pl : Galaxy.planets.entrySet())
 			{
-				if(pl.getValue().owned == null || pl.getValue().owned.areWe())
+				if( (pl.getValue().owned == null || pl.getValue().owned.areWe()) &&
+						!pl.getValue().equals(css.planet))
 				{
 					double dist = pl.getValue().distance(css.planet);
 					if(dist < minDist)
@@ -38,6 +39,7 @@ public class Selector
 			{
 				if(!pc.getValue().isMoveing &&
 						pc.getValue().lastOwner == null &&
+						!pc.getValue().lastPlanet.equals(css.planet) &&
 						(css.shipState != ControllableSpaceShip.ShipState.Collector ||
 						!css.team.claimPlanets().contains(pc.getValue().lastPlanet))
 					)

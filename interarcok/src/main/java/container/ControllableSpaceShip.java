@@ -28,7 +28,7 @@ public class ControllableSpaceShip extends SpaceShip
 		switch(res)
 		{
 		case -1 : crash(); break;
-		case 0 :
+		case 1 :
 			pack.isMoveing = false;
 			pack.lastOwner = team;
 			pack.lastPlanet = planet;
@@ -76,6 +76,8 @@ public class ControllableSpaceShip extends SpaceShip
 
 	public void doIt()
 	{
+		if(planet == null || arriveWhen > System.currentTimeMillis()) return;
+
 		if(planet.owned == null || planet.owned.areWe())
 		{
 			if(pack != null && pack.lastPlanet != planet)
@@ -88,7 +90,7 @@ public class ControllableSpaceShip extends SpaceShip
 		{
 			for(Package pkg : planet.pkgs)
 			{
-				if(pkg.lastOwner.areWe()) continue;
+				if(pkg.lastOwner != null && pkg.lastOwner.areWe()) continue;
 
 				int res = pick(pkg);
 				if(res != -2)

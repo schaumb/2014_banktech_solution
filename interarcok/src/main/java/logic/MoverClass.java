@@ -40,7 +40,7 @@ public class MoverClass
 	public void Go() throws InterruptedException
 	{
 		printStatistic();
-		//while(true)
+		while(true)
 		{
 			Long minWaitingFor = mss.doLogicStuff();
 
