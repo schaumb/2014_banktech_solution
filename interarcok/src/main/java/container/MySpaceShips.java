@@ -8,6 +8,9 @@ import org.json.JSONObject;
 
 public class MySpaceShips extends Owner
 {
+	enum GlobalState{ Collecting , Defending , Stealing , Migrating }
+	enum ShipState{ Collector , Defender , Stealer , Migrator }
+
 	private class ControllableSpaceShip extends SpaceShip
 	{
 		public ControllableSpaceShip( JSONObject whereIs ) throws JSONException

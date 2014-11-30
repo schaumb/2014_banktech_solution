@@ -1,0 +1,51 @@
+globális állapotok:
+
+Collecting - kezdőállapot - 
+    Mindenkivel gyűjtögetünk egy bizonyos helyre a még nem elfoglalt csomagokból. Nincsen őrzőnk, feltételezzük, hogy mások is "gyűjtögetnek", és nem lopnak. Nem teszünk le aknát a gyűjtött helyünkre. Kiválasztunk egy szimpatikus bolygót(, bolygókat közel egymás mellett), és próbálunk minél több csomagot odahordani.
+
+Átmenet lehet:
+    - Valakik közelítenek a bolygóink felé. (-> Defending | Migrating)
+    - Nincs több gazdátlan csomag (vagy nem érünk oda időben egyikhez sem) (-> Defending | Stealing)
+
+
+Defending - 
+    Egy, vagy két (bolygóktól függő) hajóval a saját területünkön maradunk (őrzők), és próbáljuk a "külső támadásokat hárítani", azaz ha valaki a bolygónkra szándékozik jönni (a szándékot előre látjuk), akkor (felveszünk egyet? és) aknát teszünk a gyűjteményünkre, (ha megéri?). A fennmaradó szabaddal körülöttünk lévő kiscsomagos(?) bolygókra látogatunk, feltesszük, hogy oda nenm raktak aknát (???) - migrációs szándékkal.
+Ha valakin "észleljük" hogy az aknánk felrobbantotta, akkor vagy - leteszünk újat, vagy elkezdjük a migrációt (csomagszámtól, bejövőktől függetlenül)
+
+Átmenet lehet:
+    - Sokan jönnek egyszerre a bolygónkra (2-3-4 hajó). (-> Migrating) 
+    - Maradt még gazdátlan csomag. (->Collecting)
+    - Nem jönnek egyáltalán. (-> Stealing)
+
+
+Stealing -
+    Szervezett rablásba kezdünk (bidámbidámstratégia) - több hajóval a közelben a nagyobb bolygószámú egyénektől, (vagy olyan bolygókról, ahol más a tulaj mint a rajta álló egyén, vagy ahova "látjuk", hogy visznek be csomagot - vagy követő stratégiával) csapatosan rablunk (nem félve az aknától). Egy hajó maradjon a bolygóink közelébe. Itt ledobhatunk a mi összegyűjtött bolygóinkra az aknát elinduláskor, újabb bolygókat foglalhatunk, akár a közelben is.
+
+Átmenet lehet:
+    - Sokan jönnek egyszerre a bolygónkra (2-3-4 hajó). (-> Migrating)
+    - Két hajónk is megsebesül. (-> Defending)
+     
+
+Migrating - 
+    Próbáljuk a "hemzsegéstől" teli bolygónkról menekíteni amit lehet. Egy másik "központot" választunk magunknak ami köré gyűjtjük a csomagjainkat. Mindenki "
+
+Átmenet lehet:
+    - Sikeres "mentés" esetén a helyzettől függően (-> Defending | Stealing)
+    - Elmennek tőlünk (csak körülnéztek, vagy aknába futottak) (-> Defending)
+
+
+Lokális hajóállapotok:
+
+Collector - 
+    Egy megadott bázis környezetében összhangban a többiekkel keres gazdátlan csomagokat (külső vezérlővel). Cél : eljutni a csomagig, beszállítani a "bázisra".
+
+Defender - 
+    A bázis körül ólálkodni (rajta a bázison, esetleg nagyon közeli bolygókon). Cél : megvédeni a bázist aknákkal a közelgő ellenfelek ellen.
+
+Stealer - 
+    Egy megadott bolygót támadni (csapatosan). Cél : beszállítani a bázisra a lopott csomago(ka)t.
+
+Migrator -
+    Átszállítani a régi bázisról az új bázisra a csomagokat. (Ha nincs új bázis, akkor közösen keresni, és lopni egyet)
+
+
