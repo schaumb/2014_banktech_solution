@@ -75,10 +75,12 @@ public class Communication
 
 			lastSended = System.currentTimeMillis();
 
-			return new JSONObject(
+			JSONObject res = new JSONObject(
 					new JSONTokener(
 							new BufferedReader(
 									new InputStreamReader(result))));
+			System.err.println(res);
+			return res;
 		}
 		catch(ConnectException ex)
 		{
