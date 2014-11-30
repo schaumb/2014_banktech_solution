@@ -13,14 +13,22 @@ public class MySpaceShips extends Owner
 
 	private class ControllableSpaceShip extends SpaceShip
 	{
+		private ShipState shipState;
 		public ControllableSpaceShip( JSONObject whereIs ) throws JSONException
 		{
 			super(MySpaceShips.this, whereIs);
+			shipState = ShipState.Collector;
+		}
+
+		public void setShipState(ShipState shipState)
+		{
+			this.shipState = shipState;
 		}
 	}
 
 	ArrayList<ControllableSpaceShip> myShips = new ArrayList<ControllableSpaceShip>();
 	Integer remainingMines;
+	GlobalState globalState;
 
 	public MySpaceShips( JSONObject job ) throws JSONException
 	{
@@ -36,6 +44,8 @@ public class MySpaceShips extends Owner
 		}
 
 		Galaxy.teams.put(name, this);
+
+		globalState = GlobalState.Collecting;
 	}
 
 	@Override

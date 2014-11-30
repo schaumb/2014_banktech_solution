@@ -4,7 +4,6 @@ import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.io.InputStream;
@@ -21,20 +20,12 @@ import container.MySpaceShips;
 
 public class Communication
 {
-	private String domain;
-	private String encoded;
-	private Long lastSended = System.currentTimeMillis();
-	private Integer minWait = 101;
+	public static String domain;
+	public static String encoded;
+	private static Long lastSended = System.currentTimeMillis();
+	private static Integer minWait = 101;
 
-	public Communication(String url, String auth)
-	{
-		this.domain = url;
-		this.encoded = Base64.getEncoder().encodeToString(auth.getBytes());
-
-		ping();
-	}
-
-	private JSONObject buildConnection(String url, String method, HashMap<String,String> params) throws JSONException
+	private static JSONObject buildConnection(String url, String method, HashMap<String,String> params) throws JSONException
 	{
 		try
 		{
@@ -102,7 +93,7 @@ public class Communication
 		}
 	}
 
-	private String paramsToString(HashMap<String,String> params) throws UnsupportedEncodingException
+	private static String paramsToString(HashMap<String,String> params) throws UnsupportedEncodingException
 	{
 		if(params == null) return null;
 
@@ -117,7 +108,7 @@ public class Communication
 		return postData.toString();
 	}
 
-	private void ping()
+	public static void ping()
 	{
 		try
 		{
@@ -129,7 +120,7 @@ public class Communication
 		}
 	}
 
-	public void getGalaxy()
+	public static void getGalaxy()
 	{
 		try
 		{
@@ -143,7 +134,7 @@ public class Communication
 		}
 	}
 
-	public MySpaceShips whereIs()
+	public static MySpaceShips whereIs()
 	{
 		try
 		{
@@ -158,7 +149,7 @@ public class Communication
 		return null;
 	}
 
-	public void whereAre()
+	public static void whereAre()
 	{
 		try
 		{
@@ -172,7 +163,7 @@ public class Communication
 		}
 	}
 
-	public Integer go(final String planetName, final Integer shipNum)
+	public static Integer go(final String planetName, final Integer shipNum)
 	{
 		try
 		{
@@ -205,7 +196,7 @@ public class Communication
 		return -1; // exception - we are expecting bomb
 	}
 
-	public Integer pickPackage(final Integer packageId, final Integer shipNum)
+	public static Integer pickPackage(final Integer packageId, final Integer shipNum)
 	{
 		try
 		{
@@ -238,7 +229,7 @@ public class Communication
 		return -1;
 	}
 
-	public Integer dropPackage(final Integer shipNum)
+	public static Integer dropPackage(final Integer shipNum)
 	{
 
 		try
@@ -268,7 +259,7 @@ public class Communication
 		return 0;
 	}
 
-	public Integer installMine(final String planetName, final Integer shipNum)
+	public static Integer installMine(final String planetName, final Integer shipNum)
 	{
 		try
 		{

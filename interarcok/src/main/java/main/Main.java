@@ -1,4 +1,6 @@
 package main;
+import java.util.Base64;
+
 import logic.MoverClass;
 import communication.Communication;
 
@@ -15,8 +17,12 @@ public class Main
 		MoverClass mc = null;
 		try
 		{
-			mc = new MoverClass(
-					new Communication(args[0], args[1]+':'+args[2]) );
+			Communication.domain = args[0];
+			Communication.encoded = Base64.getEncoder().encodeToString((args[1]+':'+args[2]).getBytes());
+
+			Communication.ping();
+
+			mc = new MoverClass();
 			mc.Go();
 
 		}
