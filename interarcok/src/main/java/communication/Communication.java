@@ -18,7 +18,6 @@ import org.json.JSONTokener;
 import org.json.JSONException;
 import container.Galaxy;
 import container.MySpaceShips;
-import container.TheySpaceShips;
 
 public class Communication
 {
@@ -128,11 +127,11 @@ public class Communication
 		}
 	}
 
-	public Galaxy getGalaxy()
+	public void getGalaxy()
 	{
 		try
 		{
-			return new Galaxy(buildConnection("/JavaChallenge2/rest/getGalaxy", "GET", null));
+			Galaxy.parsePlanets(buildConnection("/JavaChallenge2/rest/getGalaxy", "GET", null));
 		}
 		catch (JSONException e)
 		{
@@ -140,7 +139,6 @@ public class Communication
 			e.printStackTrace();
 			System.exit(1);
 		}
-		return null;
 	}
 
 	public MySpaceShips whereIs()
@@ -158,11 +156,11 @@ public class Communication
 		return null;
 	}
 
-	public TheySpaceShips whereAre()
+	public void whereAre()
 	{
 		try
 		{
-			return new TheySpaceShips(buildConnection("/JavaChallenge2/rest/whereAre", "GET", null));
+			Galaxy.parseTheySpaceShips(buildConnection("/JavaChallenge2/rest/whereAre", "GET", null));
 		}
 		catch (JSONException e)
 		{
@@ -170,7 +168,6 @@ public class Communication
 			e.printStackTrace();
 			System.exit(1);
 		}
-		return null;
 	}
 
 	public Integer go(final String planetName, final Integer shipNum)

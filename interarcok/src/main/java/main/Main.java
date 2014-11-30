@@ -1,7 +1,6 @@
 package main;
 import logic.MoverClass;
 import communication.Communication;
-import communication.Communication.EndOfGameException;
 
 public class Main
 {
@@ -21,24 +20,9 @@ public class Main
 			mc.Go();
 
 		}
-		catch(EndOfGameException e)
-		{
-			System.err.println(e.getMessage());
-		}
 		catch(Exception e)
 		{
 			e.printStackTrace();
-		}
-		finally
-		{
-			if( mc != null )
-			{
-				System.out.println( "Delivered packages : " + mc.deliver + ", gotted fee : " + mc.sumFee );
-			}
-			else
-			{
-				System.exit(1);
-			}
 		}
 	}
 }

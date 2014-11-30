@@ -1,68 +1,48 @@
 package container;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import container.Galaxy.Package;
-import container.Galaxy.Planet;
-
 public class SpaceShip
 {
-	public String userName;
-	public Planet planet;
-	public Planet targetPlanet;
-	public Integer arrivesAfterMs;
-	public ArrayList<Package> packages = new ArrayList<Package>();
+	public Owner team;
+	public Planet planet = null;
+	public Planet targetPlanet = null;
+	public Integer arriveAfterMs;
+	public Package pack = null;
+	public Integer shipNum;
 
-	public SpaceShip(HashMap<String,Planet> planets, JSONObject whereIs)
+	public SpaceShip( Owner team, JSONObject ss ) throws JSONException
 	{
-		try
+		this.team = team;
+		arriveAfterMs = ss.optInt("arriveAfterMs", 0);
+		shipNum = ss.getInt("shipNum");
+
+		String tmp;
+
+		tmp = ss.optString("planetName");
+		if( tmp != null && !tmp.equals("null") )
 		{
-			userName = whereIs.getString("userName");
-			arrivesAfterMs = whereIs.optInt("arrivesAfterMs", 0);
-
-			String tmp;
-
-			tmp = whereIs.getString("planetName");
-			if( tmp != null && !tmp.equals("null") )
-			{
-				System.out.println(whereIs);
-				planet = planets.get(tmp);
-			}
-			else
-			{
-				planet = null;
-			}
-
-			tmp = whereIs.getString("targetPlanetName");
-			if( tmp != null && !tmp.equals("null") )
-			{
-				targetPlanet = planets.get(tmp);
-			}
-			else
-			{
-				targetPlanet = null;
-			}
-
-			JSONArray pks = whereIs.getJSONArray("packages");
-			for( int j = 0; j < pks.length() ; ++j )
-			{
-				JSONObject pack = pks.getJSONObject(j);
-				Package newPackage = new Package(pack);
-
-				newPackage.origin = planets.get(newPackage.origin_s);
-				newPackage.target = planets.get(newPackage.target_s);
-				packages.add(newPackage);
-			}
+			planet = Galaxy.planets.get(tmp);
 		}
-		catch(JSONException e)
+
+		tmp = ss.optString("targetPlanetName");
+		if( tmp != null && !tmp.equals("null") )
 		{
-			e.printStackTrace();
-			System.exit(1);
+			targetPlanet = Galaxy.planets.get(tmp);
 		}
+
+		JSONObject mypackage = ss.getJSONObject("pack");
+		if( tmp != null && !tmp.equals("null") )
+		{
+			pack = new Package(mypackage);
+		}
+
+		Galaxy.ships.put(getUniqueId(), this);
+	}
+
+	public String getUniqueId()
+	{
+		return team.name + "-" + shipNum.toString();
 	}
 }
