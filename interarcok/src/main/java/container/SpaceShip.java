@@ -35,7 +35,7 @@ public class SpaceShip
 		JSONObject mypackage = ss.optJSONObject("pack");
 		if( mypackage != null && !mypackage.equals("null") )
 		{
-			pack = new Package(mypackage);
+			pack = new Package(mypackage, true);
 		}
 
 		Galaxy.ships.put(getUniqueId(), this);

@@ -36,7 +36,9 @@ public class Communication
 			String outParams = paramsToString(params);
 			HttpURLConnection connection = (HttpURLConnection)(new URL(domain + url).openConnection());
 
-			System.out.print(connection.getURL() + (outParams==null?"":" ?" + outParams));
+			String sentCommand = connection.getURL() + (outParams==null?"":" ?" + outParams);
+			System.out.print(sentCommand);
+			Loggers.comLogger.info(sentCommand);
 
 			connection.setRequestProperty  ("Authorization", "Basic " + encoded);
 			connection.setRequestMethod(method);
@@ -53,7 +55,10 @@ public class Communication
 
 			connection.connect();
 
-			System.out.println(" - resp : " + connection.getResponseCode() + " " + connection.getResponseMessage());
+			String respondedCode = " - resp : " + connection.getResponseCode() + " " + connection.getResponseMessage();
+			System.out.println(respondedCode);
+			Loggers.comLogger.info(respondedCode);
+
 
 			switch( connection.getResponseCode() )
 			{
@@ -70,7 +75,8 @@ public class Communication
 					new JSONTokener(
 							new BufferedReader(
 									new InputStreamReader(result))));
-			System.err.println(res);
+
+			Loggers.comLogger.info(res.toString());
 			return res;
 		}
 		catch(ConnectException ex)

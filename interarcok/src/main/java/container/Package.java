@@ -7,8 +7,9 @@ import org.json.JSONObject;
 
 public class Package
 {
-	public Package(JSONObject pack) throws JSONException
+	public Package(JSONObject pack, boolean isMoveing) throws JSONException
 	{
+		this.isMoveing = isMoveing;
 		packageId = pack.getInt("packageId");
 		lastPlanet = Galaxy.planets.get(pack.getString("lastPlanet"));
 
@@ -16,11 +17,17 @@ public class Package
 		if( tmp != null && !tmp.equals("null") )
 		{
 			lastOwner = Galaxy.teams.get(tmp);
+
+			if(!isMoveing)
+			{
+				lastPlanet.owned = lastOwner;
+			}
 		}
 
 		Galaxy.packages.put(packageId, this);
 	}
 
+	boolean isMoveing;
 	Integer packageId;
 	Planet lastPlanet;
 	Owner lastOwner = null;

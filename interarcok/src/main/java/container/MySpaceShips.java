@@ -14,6 +14,8 @@ public class MySpaceShips extends Owner
 	private class ControllableSpaceShip extends SpaceShip
 	{
 		private ShipState shipState;
+		private Integer waiting = 1;
+
 		public ControllableSpaceShip( JSONObject whereIs ) throws JSONException
 		{
 			super(MySpaceShips.this, whereIs);
@@ -23,6 +25,15 @@ public class MySpaceShips extends Owner
 		public void setShipState(ShipState shipState)
 		{
 			this.shipState = shipState;
+		}
+
+		public int getReadyToNextCommand()
+		{
+			return arriveAfterMs + waiting;
+		}
+		public void elsapedTime(long many)
+		{
+			// TODO
 		}
 	}
 
@@ -46,6 +57,22 @@ public class MySpaceShips extends Owner
 		Galaxy.teams.put(name, this);
 
 		globalState = GlobalState.Collecting;
+	}
+
+	public Integer doLogicStuff(long reallyWait)
+	{
+		for(ControllableSpaceShip css : myShips)
+		{
+			css.elsapedTime(reallyWait);
+		}
+
+		///
+		Integer minWait = Integer.min(
+				myShips.get(0).getReadyToNextCommand(), Integer.min(
+				myShips.get(1).getReadyToNextCommand(),
+				myShips.get(2).getReadyToNextCommand()));
+
+		return minWait;
 	}
 
 	@Override

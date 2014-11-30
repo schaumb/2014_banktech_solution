@@ -1,7 +1,6 @@
 package container;
 
 import java.awt.geom.Point2D;
-import java.util.LinkedList;
 import java.util.Objects;
 
 import org.json.JSONArray;
@@ -24,13 +23,13 @@ public class Planet
 		{
 			JSONObject pack = pks.getJSONObject(j);
 
-			packages.add(new Package(pack));
+			new Package(pack, false);
 		}
 	}
 
 	String name;
 	Point2D coord;
-	LinkedList<Package> packages = new LinkedList<Package>();
+	Owner owned;
 
 	public Double distance(Planet p2)
 	{
