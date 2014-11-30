@@ -21,7 +21,7 @@ public class MySpaceShips extends Owner
 
 	public MySpaceShips( JSONObject job ) throws JSONException
 	{
-		name = job.getString("name");
+		name = job.getString("userName");
 		remainingMines = job.getInt("remainingMines");
 
 		JSONArray pls = job.getJSONArray("ships");

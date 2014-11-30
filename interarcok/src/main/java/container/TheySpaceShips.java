@@ -10,7 +10,7 @@ public class TheySpaceShips extends Owner
 {
 	public TheySpaceShips( JSONObject job ) throws JSONException
 	{
-		name = job.getString("name");
+		name = job.getString("userName");
 
 		JSONArray pls = job.getJSONArray("ships");
 		for( int i = 0; i < pls.length() ; ++i )

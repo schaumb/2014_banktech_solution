@@ -32,8 +32,8 @@ public class SpaceShip
 			targetPlanet = Galaxy.planets.get(tmp);
 		}
 
-		JSONObject mypackage = ss.getJSONObject("pack");
-		if( tmp != null && !tmp.equals("null") )
+		JSONObject mypackage = ss.optJSONObject("pack");
+		if( mypackage != null && !mypackage.equals("null") )
 		{
 			pack = new Package(mypackage);
 		}
