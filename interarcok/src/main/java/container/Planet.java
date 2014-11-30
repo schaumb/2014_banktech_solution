@@ -18,12 +18,15 @@ public class Planet
 
 		Galaxy.planets.put(name, this);
 
-		JSONArray pks = planet.getJSONArray("packages");
-		for( int j = 0; j < pks.length() ; ++j )
+		JSONArray pks = planet.optJSONArray("packages");
+		if(pks != null)
 		{
-			JSONObject pack = pks.getJSONObject(j);
+			for( int j = 0; j < pks.length() ; ++j )
+			{
+				JSONObject pack = pks.getJSONObject(j);
 
-			new Package(pack, false);
+				new Package(pack, false);
+			}
 		}
 	}
 

@@ -9,7 +9,7 @@ import org.json.JSONObject;
 public class MySpaceShips extends Owner
 {
 	enum GlobalState{ Collecting , Defending , Stealing , Migrating }
-	enum ShipState{ Collector , Defender , Stealer , Migrator }
+	enum ShipState{ Collector , Defender , Stealer , Migrator , Crashed }
 
 	private class ControllableSpaceShip extends SpaceShip
 	{
@@ -27,13 +27,39 @@ public class MySpaceShips extends Owner
 			this.shipState = shipState;
 		}
 
+		public boolean readyToCommand()
+		{
+			return arriveAfterMs == 0;
+		}
+
 		public int getReadyToNextCommand()
 		{
 			return arriveAfterMs + waiting;
 		}
+
 		public void elsapedTime(long many)
 		{
-			// TODO
+			if(arriveAfterMs < many)
+			{
+				many -= arriveAfterMs;
+				arriveAfterMs = 0;
+
+				if(waiting > many)
+				{
+					arriveAfterMs = waiting - (int)many;
+				}
+				else
+				{
+					planet = targetPlanet;
+					targetPlanet = null;
+				}
+				waiting = 1;
+			}
+			else
+			{
+				arriveAfterMs -= (int)many;
+			}
+
 		}
 	}
 
@@ -64,6 +90,17 @@ public class MySpaceShips extends Owner
 		for(ControllableSpaceShip css : myShips)
 		{
 			css.elsapedTime(reallyWait);
+
+		}
+		// set Global state
+		// set Ship's state
+
+		for(ControllableSpaceShip css : myShips)
+		{
+			if(css.readyToCommand())
+			{
+				// TODO
+			}
 		}
 
 		///
