@@ -42,7 +42,7 @@ public class MoverClass
 		printStatistic();
 		Communication.getGalaxy();
 		Communication.whereAre();
-
+		Selector.recalculatePTS();
 		for(int i = 0; i < 2; ++i)
 		{
 			Long minWaitingFor = mss.doLogicStuff();
@@ -67,6 +67,7 @@ public class MoverClass
 			if(now2 - lastGotWhereAre > oldAreData || minWaiting >= 101)
 			{
 				Communication.whereAre();
+				Selector.recalculatePTS();
 				lastGotWhereAre = System.currentTimeMillis();
 			}
 			Loggers.logLogger.info("MinWaiting : " + minWaiting + " reallyWait : " + (System.currentTimeMillis()-now));

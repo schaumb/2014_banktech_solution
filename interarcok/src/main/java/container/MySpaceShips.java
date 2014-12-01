@@ -1,7 +1,6 @@
 package container;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.Map.Entry;
 
 import logic.Selector;
@@ -14,12 +13,7 @@ import communication.Loggers;
 
 public class MySpaceShips extends Owner
 {
-	public enum GlobalState{ Collecting , Defending , Stealing , Migrating }
-
 	ArrayList<ControllableSpaceShip> myShips = new ArrayList<ControllableSpaceShip>();
-	Integer remainingMines;
-	GlobalState globalState;
-	LinkedList<Planet> claimPlanets = new LinkedList<Planet>();
 
 	public MySpaceShips( JSONObject job ) throws JSONException
 	{
@@ -35,8 +29,6 @@ public class MySpaceShips extends Owner
 		}
 
 		Galaxy.teams.put(name, this);
-
-		globalState = GlobalState.Collecting;
 	}
 
 	public Long doLogicStuff() throws InterruptedException
@@ -54,22 +46,16 @@ public class MySpaceShips extends Owner
 			str += pl.getKey() + " " + pl.getValue().isMoveing  + " " +
 					(pl.getValue().lastOwner == null? "null" : pl.getValue().lastOwner.name) + "\n";
 		}
-		Loggers.logLogger.info(str);
-
-		for(ControllableSpaceShip css: myShips)
+		str += "Ships\n";
+		for(Entry<String, SpaceShip> pl : Galaxy.ships.entrySet())
 		{
-			str += css.getUniqueId() +
-					" Arr :" + (System.currentTimeMillis() - css.arriveWhen) +
-					" Where" + (css.planet == null ? "null" : css.planet.name) +
-					" Targe" + (css.targetPlanet == null ? "null" : css.targetPlanet.name) +
-					" Packa" + (css.pack == null ? "null" : css.pack.packageId) +
-					 "\n";
+			str += pl.getKey() + " " +
+					" in: " +(pl.getValue().planet == null? "null" : pl.getValue().planet.name) +
+					" since: " + (System.currentTimeMillis()-pl.getValue().inPlanetSince) +
+					" Targe" + (pl.getValue().targetPlanet == null ? "null" : pl.getValue().targetPlanet.name) +
+					" Packa" + (pl.getValue().pack == null ? "null" : pl.getValue().pack.packageId) + "\n";
 		}
 		Loggers.logLogger.info(str);
-
-		// set Global state
-
-		// set Ship's state and next command
 
 		for(ControllableSpaceShip css : myShips)
 		{
@@ -116,11 +102,5 @@ public class MySpaceShips extends Owner
 	public ArrayList<SpaceShip> ships()
 	{
 		return new ArrayList<SpaceShip>(myShips);
-	}
-
-	@Override
-	public LinkedList<Planet> claimPlanets()
-	{
-		return claimPlanets;
 	}
 }

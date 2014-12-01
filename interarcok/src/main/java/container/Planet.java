@@ -33,9 +33,26 @@ public class Planet
 
 	String name;
 	Point2D coord;
-	public Owner owned;
-	Boolean hasmine = false;
-	ArrayList<Package> pkgs = new ArrayList<Package>();
+	public Owner owned = null;
+	public Boolean hasmine = false;
+	public ArrayList<Package> pkgs = new ArrayList<Package>();
+
+	public boolean containsNobodysPackage()
+	{
+		for(Package p : pkgs)
+		{
+			if(p.lastOwner == null && !p.isMoveing) return true;
+		}
+		return false;
+	}
+	public void setNobodysPackageToMove()
+	{
+		for(Package p : pkgs)
+		{
+			if(p.lastOwner == null)
+				p.isMoveing = true;
+		}
+	}
 
 	public Double distance(Planet p2)
 	{

@@ -27,7 +27,7 @@ public class Package
 		Galaxy.packages.put(packageId, this);
 	}
 
-	public boolean isMoveing;
+	public boolean isMoveing; //  ha mozgasba van, vagy ha epp kivalasztottuk felvetelre!
 	Integer packageId;
 	public Planet lastPlanet;
 	public Owner lastOwner = null;

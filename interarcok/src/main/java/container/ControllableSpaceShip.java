@@ -1,5 +1,7 @@
 package container;
 
+import java.util.Random;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -7,22 +9,12 @@ import communication.Communication;
 
 public class ControllableSpaceShip extends SpaceShip
 {
-	public enum ShipState{ Collector , Defender , Stealer , Migrator , Crashed }
-
-	public ShipState shipState;
-
 	public ControllableSpaceShip( JSONObject whereIs, Owner own ) throws JSONException
 	{
 		super(own, whereIs);
-		shipState = ShipState.Collector;
 	}
 
-	public void setShipState(ShipState shipState)
-	{
-		this.shipState = shipState;
-	}
-
-	private void drop()
+	private boolean drop()
 	{
 		int res = Communication.dropPackage(shipNum);
 		switch(res)
@@ -37,7 +29,11 @@ public class ControllableSpaceShip extends SpaceShip
 
 			pack = null;
 			break;
+		default:
+			// kellő inkonzisztencia
+			planet.owned = team;
 		}
+		return res == 1;
 	}
 
 	private int pick(Package pack)
@@ -49,7 +45,11 @@ public class ControllableSpaceShip extends SpaceShip
 		case 0 :
 			pack.isMoveing = true;
 			this.pack = pack;
+			planet.pkgs.remove(pack);
 			break;
+		case -2 : // vki elvitte :(
+			pack.isMoveing = true;
+			planet.pkgs.remove(pack);
 		}
 		return res;
 	}
@@ -62,13 +62,25 @@ public class ControllableSpaceShip extends SpaceShip
 		case -1 : crash(); break;
 		default:
 			arriveWhen = System.currentTimeMillis() + res;
+			planet = null;
 			break;
 		}
 	}
 
+	private void installMine()
+	{
+		int res = Communication.installMine(planet.name, shipNum);
+		switch(res)
+		{
+		case -1 : crash(); break;
+		default:
+			planet.hasmine = true;
+			team.remainingMines = res;
+			break;
+		}
+	}
 	public void crash()
 	{
-		setShipState(ShipState.Crashed);
 		arriveWhen = System.currentTimeMillis() + 120000;
 		targetPlanet = planet;
 		planet = null;
@@ -77,12 +89,13 @@ public class ControllableSpaceShip extends SpaceShip
 	public void doIt()
 	{
 		if(planet == null || arriveWhen > System.currentTimeMillis()) return;
-
-		if(planet.owned == null || planet.owned.areWe())
+		boolean isDropped = false;
+		boolean isPicked = false;
+		if(planet.owned == null)
 		{
 			if(pack != null && pack.lastPlanet != planet)
 			{
-				drop();
+				isDropped = drop();
 			}
 		}
 
@@ -90,19 +103,34 @@ public class ControllableSpaceShip extends SpaceShip
 		{
 			for(Package pkg : planet.pkgs)
 			{
-				if(pkg.lastOwner != null && pkg.lastOwner.areWe()) continue;
+				if(pkg.lastOwner.areWe()) continue;
 
 				int res = pick(pkg);
 				if(res != -2)
 				{
+					isPicked = res == 0;
 					break;
 				}
+
+			}
+		}
+
+		if(isDropped && team.remainingMines > 0)
+		{
+			if(new Random(System.currentTimeMillis()).nextInt(isPicked?20:10) == 0)
+			{
+				installMine();
 			}
 		}
 
 		if(targetPlanet != null)
 		{
 			go();
+		}
+		else
+		{
+			System.out.println("NO TARGET " + getUniqueId());
+			System.exit(1);
 		}
 	}
 
@@ -112,7 +140,6 @@ public class ControllableSpaceShip extends SpaceShip
 		{
 			planet = targetPlanet;
 			targetPlanet = null;
-			team.claimPlanets().remove(planet);
 			return true;
 		}
 		return false;

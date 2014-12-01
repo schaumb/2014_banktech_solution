@@ -1,9 +1,9 @@
 Kezdetben:
 
-Keresünk nem foglalt csomagokat, és próbáljuk arrébbvinni (prioritásos azon egyedüli csomagok, melyek bolygója még nincs elfoglalva, és mi nem tettünk rá aknát, és semely "hajó" nem tart felé, (vagy ha igen, mi előbb érnénk oda) - ha több van, hash szerinti elsőre megyünk (és nem távolságra!))
+Keresünk nem foglalt csomagokat, és próbáljuk arrébbvinni (prioritásos azon egyedüli csomagok, melyek bolygója még nincs elfoglalva, és mi nem tettünk rá aknát, és semely "hajó" nem tart felé, (vagy ha igen, mi előbb érnénk oda) - ha több van, a legközelebbire megyünk, amit még a mi hajónkkal nem pécéztünk ki)
 Ha nem sikerült, mert elkapták előttünk (megtörténhet adatinkonzisztencia miatt), akkor megyünk tovább.
 
-Ha nincs csomagunk, és nincs szabad bolygós csomag a közelben, amihez mi előbb érnénk oda:
+Ha nincs csomagunk, és nincs szabad bolygós csomag a közelben, amihez mi előbb érnénk oda
 A hajóinkkal próbálunk felvenni csomagot az épp tartózkodott bolygón, (ami nem a mienk)
     - akár sikerül, akár nem, "követünk" valakit (nincs nála csomag) úgy, hogy megnézzük mikor érkezik egy bizonyos bolygóra (ami már el van foglalva), 
         és ha mi is egy picivel később odaérkezünk (kiszámoljuk), akkor oda megyünk.
