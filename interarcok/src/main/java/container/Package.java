@@ -14,7 +14,7 @@ public class Package
 		lastPlanet = Galaxy.planets.get(pack.getString("lastPlanet"));
 
 		String tmp = pack.optString("lastOwner");
-		if( tmp != null && !tmp.equals("null") )
+		if( tmp != null )
 		{
 			lastOwner = Galaxy.teams.get(tmp);
 

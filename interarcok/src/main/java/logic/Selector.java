@@ -30,7 +30,7 @@ public class Selector
 	/*static HashMap<Planet,TreeSet<SpaceShip>> there;*/
 	static double PriorityOfNobodysPlanet = 100;
 	static double PriorityOfNobodysPackage = 1000;
-	static Random rand = new Random(System.currentTimeMillis());
+	public static Random rand = new Random(System.currentTimeMillis());
 
 	public static void recalculatePTS()
 	{

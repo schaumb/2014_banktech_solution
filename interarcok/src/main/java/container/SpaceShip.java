@@ -29,19 +29,19 @@ public class SpaceShip
 		String tmp;
 
 		tmp = ss.optString("planetName");
-		if( tmp != null && !tmp.equals("null") )
+		if( tmp != null )
 		{
 			planet = Galaxy.planets.get(tmp);
 		}
 
 		tmp = ss.optString("targetPlanetName");
-		if( tmp != null && !tmp.equals("null") )
+		if( tmp != null )
 		{
 			targetPlanet = Galaxy.planets.get(tmp);
 		}
 
 		JSONObject mypackage = ss.optJSONObject("pack");
-		if( mypackage != null && !mypackage.equals("null") )
+		if( mypackage != null )
 		{
 			pack = new Package(mypackage, true);
 		}

@@ -122,7 +122,7 @@ public class ControllableSpaceShip extends SpaceShip
 		if(isDropped && team.remainingMines > 0)
 		{
 			TreeSet<SpaceShip> ss = Selector.planet_arrivers_without_package.get(planet);
-			if(new Random(System.currentTimeMillis()).nextInt(isPicked?20:10) == 0
+			if(Selector.rand.nextInt(isPicked?2:3) == 0
 					|| (ss != null && ss.size() > 0))
 			{
 				installMine();
