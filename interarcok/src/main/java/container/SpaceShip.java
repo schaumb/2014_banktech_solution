@@ -18,15 +18,12 @@ public class SpaceShip
 	public Integer shipNum;
 	public Long inPlanetSince;
 
-	public boolean hasPackage()
-	{
-		return pack != null;
-	}
-
 	public SpaceShip( Owner team, JSONObject ss ) throws JSONException
 	{
 		this.team = team;
-		arriveWhen = System.currentTimeMillis() + ss.optLong("arriveAfterMs", 0);
+
+		inPlanetSince = System.currentTimeMillis();
+		arriveWhen = inPlanetSince + ss.optLong("arriveAfterMs", 0);
 		shipNum = ss.getInt("shipNum");
 
 		String tmp;
@@ -49,14 +46,19 @@ public class SpaceShip
 			pack = new Package(mypackage, true);
 		}
 
-		if(Galaxy.ships.containsKey(getUniqueId()) &&
-				Objects.equals(Galaxy.ships.get(getUniqueId()).planet,planet))
+		SpaceShip previousMe = Galaxy.ships.get(getUniqueId());
+
+		if(previousMe != null)
 		{
-			inPlanetSince = Galaxy.ships.get(getUniqueId()).inPlanetSince;
-		}
-		else
-		{
-			inPlanetSince = System.currentTimeMillis();
+			if(previousMe.arriveWhen > arriveWhen)
+			{
+				arriveWhen = previousMe.arriveWhen;
+			}
+
+			if(Objects.equals(previousMe.planet,planet))
+			{
+				inPlanetSince = Galaxy.ships.get(getUniqueId()).inPlanetSince;
+			}
 		}
 
 		Galaxy.ships.put(getUniqueId(), this);

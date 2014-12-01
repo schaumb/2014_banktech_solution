@@ -64,7 +64,7 @@ public class Communication
 			{
 				case 503 : System.out.println("503 - end of game"); System.exit(0);
 				case 403 : System.out.println("403 - quick sending"); break;
-				case 423 : System.out.println("423 - stucked :("); break;
+				case 423 : return new JSONObject();
 			}
 
 			InputStream result = connection.getInputStream();
@@ -189,7 +189,7 @@ public class Communication
 						" destiny : " + planetName +
 						" shipNum : " + shipNum +
 						" but got code " + res.getString("status"));
-				break;
+				return -2;
 			}
 		}
 		catch(JSONException e)
@@ -198,8 +198,8 @@ public class Communication
 						" destiny : " + planetName +
 						" shipNum : " + shipNum +
 						" but got JSONException "+ e.toString());
+			return -1; // exception - we are expecting bomb
 		}
-		return -1; // exception - we are expecting bomb
 	}
 
 	public static Integer pickPackage(final Integer packageId, final Integer shipNum)
@@ -217,14 +217,12 @@ public class Communication
 			{
 			case "PACKAGE_PICKED" :
 				return res.getInt("remainingCapacity");
-			case "NOT_FOUND":
-				return -2;
 			default:
 				System.out.println("Logical problem in pickPackage function -" +
 						" packageId : " + packageId +
 						" shipNum : " + shipNum +
 						" but got code " + res.getString("status"));
-				break;
+				return -2;
 			}
 		}
 		catch(JSONException e)
@@ -233,8 +231,8 @@ public class Communication
 					" packageId : " + packageId +
 					" shipNum : " + shipNum +
 					" but got JSONException "+ e.toString());
+			return -1;
 		}
-		return -1;
 	}
 
 	public static Integer dropPackage(final Integer shipNum)
@@ -251,13 +249,11 @@ public class Communication
 			{
 			case "PACKAGE_DROPPED" :
 				return res.getInt("scoreIncrease");
-			case "ALREADY_OCCUPIED" :
-				return -2;
 			default:
 				System.out.println("Logical problem in dropPackage function -" +
 						" shipNum : " + shipNum +
 						" but got code " + res.getString("status"));
-				break;
+				return -2;
 			}
 		}
 		catch(JSONException e)
@@ -265,8 +261,8 @@ public class Communication
 			System.out.println("Respond problem in dropPackage function -" +
 					" shipNum : " + shipNum +
 					" but got JSONException "+ e.toString());
+			return -1;
 		}
-		return 0;
 	}
 
 	public static Integer installMine(final String planetName, final Integer shipNum)
@@ -289,7 +285,7 @@ public class Communication
 						" destiny : " + planetName +
 						" shipNum : " + shipNum +
 						" but got code " + res.getString("status"));
-				break;
+				return -2;
 			}
 		}
 		catch(JSONException e)
@@ -298,8 +294,8 @@ public class Communication
 						" destiny : " + planetName +
 						" shipNum : " + shipNum +
 						" but got JSONException "+ e.toString());
+			return -1; // exception - we are expecting bomb
 		}
-		return -1; // exception - we are expecting bomb
 	}
 
 }

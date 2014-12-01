@@ -4,11 +4,11 @@ import communication.Communication;
 import communication.Loggers;
 import container.Galaxy;
 import container.MySpaceShips;
+import container.SpaceShip;
 
 public class MoverClass
 {
 	MySpaceShips mss;
-	public int owning = 0;
 	private Long lastGotGalaxy;
 	private Long lastGotWhereAre;
 	private Integer oldGalaxyData = 700;
@@ -41,38 +41,44 @@ public class MoverClass
 	{
 		printStatistic();
 		Communication.getGalaxy();
+		lastGotGalaxy = System.currentTimeMillis();
 		Communication.whereAre();
+		lastGotWhereAre = System.currentTimeMillis();
 		Selector.recalculatePTS();
+
+		for(SpaceShip ss : mss.ships())
+		{
+			System.out.println(ss.getUniqueId() + " kezdeti bolygo : " + (ss.planet == null ? "null" : ss.planet.getName()));
+		}
 		while(true)
 		{
+			mss = Communication.whereIs();
 			Long minWaitingFor = mss.doLogicStuff();
 
 			Long now = System.currentTimeMillis();
 			Long minWaiting = minWaitingFor - now;
 
 			// if fresh data-s, and need to wait
-			if(minWaiting > 202)
+			if(minWaiting > 303)
 			{
-				Thread.sleep(minWaiting - 202);
+				Thread.sleep(minWaiting - 303);
 			}
 
 			Long now1 = System.currentTimeMillis();
-			if(now1 - lastGotGalaxy > oldGalaxyData || minWaiting >= 202)
+			if(now1 - lastGotGalaxy > oldGalaxyData || minWaiting >= 303)
 			{
 				Communication.getGalaxy();
 				lastGotGalaxy = System.currentTimeMillis();
 			}
 
 			Long now2 = System.currentTimeMillis();
-			if(now2 - lastGotWhereAre > oldAreData || minWaiting >= 101)
+			if(now2 - lastGotWhereAre > oldAreData || minWaiting >= 202)
 			{
 				Communication.whereAre();
 				Selector.recalculatePTS();
 				lastGotWhereAre = System.currentTimeMillis();
 			}
 			Loggers.logLogger.info("MinWaiting : " + minWaiting + " reallyWait : " + (System.currentTimeMillis()-now));
-			//if((System.currentTimeMillis()-now) == 0)
-			//	break;
 		}
 	}
 }

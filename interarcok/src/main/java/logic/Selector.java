@@ -26,9 +26,10 @@ public class Selector
 	}
 
 	static HashMap<Planet,TreeSet<SpaceShip>> planet_arrivers_with_package;
-	static HashMap<Planet,TreeSet<SpaceShip>> planet_arrivers_without_package;
+	public static HashMap<Planet,TreeSet<SpaceShip>> planet_arrivers_without_package;
 	/*static HashMap<Planet,TreeSet<SpaceShip>> there;*/
 	static double PriorityOfNobodysPlanet = 100;
+	static Random rand = new Random(System.currentTimeMillis());
 
 	public static void recalculatePTS()
 	{
@@ -96,7 +97,7 @@ public class Selector
 		if((css.pack != null && css.planet.owned != null) ||
 				claimToPackage)
 		{
-
+			System.out.println(css.getUniqueId() + " keresunk leteendo bolygot");
 			// eloszor keresunk egy ures bolygot, ahova van eselyunk erkezni,
 			// ezek kozul a legkisebbet valasztjuk
 			Planet pmin = null;
@@ -108,6 +109,7 @@ public class Selector
 				TreeSet<SpaceShip> tsss = planet_arrivers_with_package.get(pl);
 				if( pl.owned == null &&
 						!pl.equals(css.planet) &&
+						(css.pack == null || !css.pack.lastPlanet.equals(pl)) &&
 						(tsss == null ||
 							tsss.first().arriveWhen >
 							now + (long)(pl.distance(css.planet) / SpaceShip.speed + 1) )
@@ -135,14 +137,18 @@ public class Selector
 
 			if(pmin != null)
 			{
+				System.out.println(css.getUniqueId() + " go to " + pmin.getName() + " van csomag v felv");
 				return pmin;
 			}
 
 			// ha nem sikerult, akkor probaljunk meg valakit kovetni
 		}
 		// ha nincs nálunk csomag, és nem is található a jelenlegi bolygónkon
-		else if(css.pack == null && !hasPickPack)
+		// vagy letesszük, és (feltételezve) felveszünk
+		if( (css.pack == null && !hasPickPack) ||
+				(css.pack != null && css.planet.owned == null && css.pack.lastPlanet != css.planet) )
 		{
+			System.out.println(css.getUniqueId() + " keresunk felvehetp csomagot");
 			// keressünk egy felvehető package-t
 			// ha van
 			//Planet pmin = null;
@@ -158,6 +164,7 @@ public class Selector
 					TreeSet<SpaceShip> tsss = planet_arrivers_without_package.get(pa.lastPlanet);
 
 					if(!pa.lastPlanet.hasmine &&
+						!pa.lastPlanet.equals(css.planet) &&
 							(tsss == null ||
 							tsss.first().arriveWhen >
 							now + (long)(pa.lastPlanet.distance(css.planet) / SpaceShip.speed + 1)) )
@@ -174,6 +181,7 @@ public class Selector
 			}
 			if(pkg != null)
 			{
+				System.out.println(css.getUniqueId() + " go to " + pkg.lastPlanet.getName() + " van felveheto csomag " + pkg.getPackageId());
 				pkg.isMoveing = true;
 				return pkg.lastPlanet;
 				// return pmin;
@@ -182,6 +190,7 @@ public class Selector
 		}
 
 		// koveto modszer.
+		System.out.println(css.getUniqueId() + " kovessunk valakit");
 
 		SpaceShip ssmin = null;
 		long minTimeDist = Long.MAX_VALUE;
@@ -193,7 +202,9 @@ public class Selector
 
 		for(Entry<Planet, TreeSet<SpaceShip>> pc : planet_arrivers_without_package.entrySet())
 		{
-			if(css.planet.equals(pc.getKey())) continue;
+			if(css.planet.equals(pc.getKey()) ||
+					(css.pack != null && css.pack.lastPlanet.equals(pc.getKey())))
+				continue;
 
 			css.arriveWhen = now + (long)(pc.getKey().distance(css.planet) / speed + 1);
 
@@ -224,17 +235,41 @@ public class Selector
 
 		if(ssmin != null) // követjük ss-t
 		{
+			System.out.println(css.getUniqueId() + " go to " + ssmin.targetPlanet.getName() + " kovesd " + ssmin.getUniqueId());
 			return ssmin.targetPlanet;
 		}
 
 		// hmm. nem tudunk senkit követni, és be fognak minket mindenhol előzni.
-		// getRand bolygó
+
+
+
+		// ha szerzünk csomagot menjünk egy olyan helyre, ahol van (nem lefagyott egyén) üresen áll más bolygója felett ( vagy előttünk van )
+
+		// ha nincs csomagunk menjünk el egy olyan bolygóra, ami nem a mienk
+
 		Planet prand = css.planet;
-		while(css.planet.equals(prand))
+
+		if(css.pack == null && !hasPickPack)
 		{
-			int nth = new Random(now).nextInt(Galaxy.planets.size());
+			for(Planet p : Galaxy.planets.values())
+			{
+				if(p.owned == null || !p.owned.areWe())
+				{
+					prand = p;
+					break;
+				}
+			}
+		}
+
+		// getRand bolygó
+		while(css.planet.equals(prand) ||
+				(css.pack != null && css.pack.lastPlanet.equals(prand)))
+		{
+
+			int nth = rand.nextInt(Galaxy.planets.size());
 			prand = (Planet) Galaxy.planets.values().toArray()[nth];
 		}
+		System.out.println(css.getUniqueId() + " go to " + prand.getName() + " because rand ");
 		return prand;
 	}
 

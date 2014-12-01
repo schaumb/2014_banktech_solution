@@ -15,7 +15,7 @@ public class Main
 			System.out.println("Bad parameters (url user pass)");
 			return;
 		}
-		MoverClass mc = null;
+
 		try
 		{
 			new Loggers();
@@ -24,8 +24,7 @@ public class Main
 
 			Communication.ping();
 
-			mc = new MoverClass();
-			mc.Go();
+			new MoverClass().Go();
 
 		}
 		catch(Exception e)

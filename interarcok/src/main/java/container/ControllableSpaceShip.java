@@ -1,6 +1,9 @@
 package container;
 
 import java.util.Random;
+import java.util.TreeSet;
+
+import logic.Selector;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,8 +22,11 @@ public class ControllableSpaceShip extends SpaceShip
 		int res = Communication.dropPackage(shipNum);
 		switch(res)
 		{
+		case -2 :
+			break;
 		case -1 : crash(); break;
-		case 1 :
+		default:
+			System.out.println(getUniqueId() + " drop with " + res );
 			pack.isMoveing = false;
 			pack.lastOwner = team;
 			pack.lastPlanet = planet;
@@ -29,11 +35,8 @@ public class ControllableSpaceShip extends SpaceShip
 
 			pack = null;
 			break;
-		default:
-			// kellő inkonzisztencia
-			planet.owned = team;
 		}
-		return res == 1;
+		return res >= 0;
 	}
 
 	private int pick(Package pack)
@@ -118,7 +121,9 @@ public class ControllableSpaceShip extends SpaceShip
 
 		if(isDropped && team.remainingMines > 0)
 		{
-			if(new Random(System.currentTimeMillis()).nextInt(isPicked?20:10) == 0)
+			TreeSet<SpaceShip> ss = Selector.planet_arrivers_without_package.get(planet);
+			if(new Random(System.currentTimeMillis()).nextInt(isPicked?20:10) == 0
+					|| (ss != null && ss.size() > 0))
 			{
 				installMine();
 			}

@@ -33,6 +33,8 @@ public class MySpaceShips extends Owner
 
 	public Long doLogicStuff() throws InterruptedException
 	{
+		int myPackages = 0;
+		int moveingPackage = 0;
 		String str = new String();
 		str += "Planets\n";
 		for(Entry<String, Planet> pl : Galaxy.planets.entrySet())
@@ -45,6 +47,14 @@ public class MySpaceShips extends Owner
 		{
 			str += pl.getKey() + " " + pl.getValue().isMoveing  + " " +
 					(pl.getValue().lastOwner == null? "null" : pl.getValue().lastOwner.name) + "\n";
+			if(pl.getValue().lastOwner != null && pl.getValue().lastOwner.areWe())
+			{
+				++myPackages;
+			}
+			if(pl.getValue().isMoveing)
+			{
+				++moveingPackage;
+			}
 		}
 		str += "Ships\n";
 		for(Entry<String, SpaceShip> pl : Galaxy.ships.entrySet())
@@ -56,6 +66,7 @@ public class MySpaceShips extends Owner
 					" Packa" + (pl.getValue().pack == null ? "null" : pl.getValue().pack.packageId) + "\n";
 		}
 		Loggers.logLogger.info(str);
+		System.out.println(myPackages + "/" + moveingPackage + " = my/move");
 
 		for(ControllableSpaceShip css : myShips)
 		{
