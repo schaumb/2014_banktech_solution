@@ -84,6 +84,7 @@ public class ControllableSpaceShip extends SpaceShip
 		arriveWhen = System.currentTimeMillis() + 120000;
 		targetPlanet = planet;
 		planet = null;
+		System.out.println(getUniqueId() + " crashed!");
 	}
 
 	public void doIt()
@@ -103,7 +104,7 @@ public class ControllableSpaceShip extends SpaceShip
 		{
 			for(Package pkg : planet.pkgs)
 			{
-				if(pkg.lastOwner.areWe()) continue;
+				if(pkg.lastOwner != null && pkg.lastOwner.areWe()) continue;
 
 				int res = pick(pkg);
 				if(res != -2)

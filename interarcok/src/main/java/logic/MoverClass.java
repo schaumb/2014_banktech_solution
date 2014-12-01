@@ -43,7 +43,7 @@ public class MoverClass
 		Communication.getGalaxy();
 		Communication.whereAre();
 		Selector.recalculatePTS();
-		for(int i = 0; i < 2; ++i)
+		while(true)
 		{
 			Long minWaitingFor = mss.doLogicStuff();
 

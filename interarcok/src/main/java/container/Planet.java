@@ -1,8 +1,8 @@
 package container;
 
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
 import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -35,7 +35,7 @@ public class Planet
 	Point2D coord;
 	public Owner owned = null;
 	public Boolean hasmine = false;
-	public ArrayList<Package> pkgs = new ArrayList<Package>();
+	public CopyOnWriteArrayList<Package> pkgs = new CopyOnWriteArrayList<Package>();
 
 	public boolean containsNobodysPackage()
 	{
