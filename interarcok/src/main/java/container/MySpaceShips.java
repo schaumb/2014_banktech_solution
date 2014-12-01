@@ -43,8 +43,8 @@ public class MySpaceShips extends Owner
 				}});
 			thrs.add(t);
 			t.start();
+			t.join();
 		}
-
 		for(Thread t : thrs)
 		{
 			t.join();

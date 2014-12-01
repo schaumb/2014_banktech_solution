@@ -32,9 +32,13 @@ public class Planet
 				{
 					JSONObject pack = pks.getJSONObject(j);
 
-					oldMe.pkgs.add(
-							Galaxy.packages.get(
-									new Package(pack, false).packageId));
+					Package p = Galaxy.packages.get(
+							new Package(pack, false).packageId);
+					oldMe.pkgs.add(p);
+					if(p.lastOwner != null)
+					{
+						owned = p.lastOwner;
+					}
 				}
 			}
 			coord = new Point2D.Double();
@@ -54,9 +58,15 @@ public class Planet
 				{
 					JSONObject pack = pks.getJSONObject(j);
 
-					pkgs.add(new Package(pack, false));
+					Package p = new Package(pack, false);
+					pkgs.add(p);
+					if(p.lastOwner != null)
+					{
+						owned = p.lastOwner;
+					}
 				}
 			}
+			Galaxy.planets.put(name, this);
 		}
 	}
 

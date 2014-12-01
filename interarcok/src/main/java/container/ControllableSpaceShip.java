@@ -2,12 +2,14 @@ package container;
 
 import java.util.TreeSet;
 
+import logic.MoverClass;
 import logic.Selector;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import communication.Communication;
+import communication.Loggers;
 
 public class ControllableSpaceShip extends SpaceShip
 {
@@ -22,6 +24,7 @@ public class ControllableSpaceShip extends SpaceShip
 		switch(res)
 		{
 		case -2 :
+			planet.owned = team;
 			break;
 		case -1 : crash(); break;
 		default:
@@ -83,48 +86,110 @@ public class ControllableSpaceShip extends SpaceShip
 	{
 		arriveWhen = System.currentTimeMillis() + 120000;
 		targetPlanet = planet;
-		planet = null;
-		System.out.println(getUniqueId() + " crashed!");
 	}
 
+	public void KiirMindent()
+	{
+		String str = "";
+		str += "packages\n";
+		for(Package p : Galaxy.packages.values())
+		{
+			str += p.packageId + " " + p.isMoveing.get() + " " + p.lastPlanet.name + " " + (p.lastOwner == null ? "null" : p.lastOwner.name) + "\n";
+		}
+		str += "planets\n";
+		for(Planet p : Galaxy.planets.values())
+		{
+			str += p.name + " " + p.pkgs.size() + " " + (p.owned == null ? "null" : p.owned.name) + " pkgs:";
+			for(Package pk : p.pkgs)
+			{
+				str += pk.packageId + " ";
+			}
+			str += "\n";
+		}
+		str += "ships\n";
+		for(SpaceShip p : Galaxy.ships.values())
+		{
+			str += p.getUniqueId() + " " + p.arriveWhen + " p:" + (p.planet == null ? "null" : p.planet.name) + " t:" +
+					(p.targetPlanet == null ? "null" : p.targetPlanet.name) + " pack:" + (p.pack == null ? "null" : p.pack.packageId) + "\n";
+		}
+		Loggers.logLogger.info(str);
+	}
 	public void doIt() throws InterruptedException
 	{
-		if(planet.owned == null && pack != null && pack.lastPlanet != planet)
+		boolean bugsearch = false;
+		while(true)
 		{
-			drop();
-		}
-
-		for(final Package p : planet.pkgs)
-		{
-			if( p.claim == null || getUniqueId().equals(p.claim))
+			Communication.whereIs();
+			Communication.getGalaxy();
+			Communication.whereAre();
+			Selector.recalculatePTS();
+			KiirMindent();
+			if(planet.owned == null && pack != null && pack.lastPlanet != planet)
 			{
-				if(pick(p) != -2)
+				if(!drop())
 				{
-					break;
+					bugsearch = true;
+				}
+				Package p = pack;
+				System.out.println("b4 - " + p.packageId + " " + p.isMoveing.get() + " " + p.lastPlanet.name + " " + (p.lastOwner == null ? "null" : p.lastOwner.name));
+
+			}
+
+			if(pack == null)
+			{
+				//for(final Package p : planet.pkgs)
+				for(Package p : Galaxy.packages.values())
+				{
+
+					if( (p.claim == null || getUniqueId().equals(p.claim)) &&
+							(p.lastOwner == null || !p.lastOwner.areWe()))
+					{
+						System.out.println("after - " + p.packageId + " " + p.isMoveing.get() + " " + p.lastPlanet.name + " " + (p.lastOwner == null ? "null" : p.lastOwner.name));
+						if(pick(p) != -2)
+						{
+							break;
+						}
+					}
 				}
 			}
-		}
 
-		if(planet.owned != null && planet.owned.areWe() && !planet.hasMine.get())
-		{
-			TreeSet<SpaceShip> ss = Selector.planet_arrivers_without_package.get(planet);
-			if(Selector.rand.nextInt(20) == 0
-					|| (ss != null && ss.size() > 0))
+			if(planet.owned != null && planet.owned.areWe() && !planet.hasMine.get())
 			{
-				installMine();
+				TreeSet<SpaceShip> ss = Selector.planet_arrivers_without_package.get(planet);
+				if(Selector.rand.nextInt(20) == 0
+						|| (ss != null && ss.size() > 0))
+				{
+					installMine();
+				}
 			}
-		}
 
-		targetPlanet = Selector.calculateNext(this);
+			targetPlanet = Selector.calculateNext(this);
 
-		if(targetPlanet != null) // always true
-		{
-			go();
-			Thread.sleep(arriveWhen - System.currentTimeMillis());
+			if(targetPlanet != null) // always true
+			{
+				go();
 
-			planet = targetPlanet;
-			targetPlanet = null;
-			planet.claim = null;
+				long save = MoverClass.time.get();
+				if(save > arriveWhen)
+				{
+					MoverClass.time.compareAndSet(save, arriveWhen);
+				}
+
+				long t = arriveWhen - System.currentTimeMillis() - 303;
+				if(t > 0)
+				{
+					Thread.sleep(t);
+				}
+
+				if(bugsearch)
+				{
+					System.exit(1);
+				}
+
+				planet = targetPlanet;
+				targetPlanet = null;
+				planet.claim = null;
+			}
 		}
 	}
 }

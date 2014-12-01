@@ -69,8 +69,11 @@ public class SpaceShip
 			{
 				oldMe.pack.isMoveing.set(false);
 				oldMe.pack.lastOwner = team;
-				oldMe.pack.lastPlanet = oldMe.targetPlanet;
-				oldMe.pack.lastPlanet.pkgs.add(oldMe.pack);
+				if(oldMe.targetPlanet != null)
+				{
+					oldMe.pack.lastPlanet = oldMe.targetPlanet;
+					oldMe.pack.lastPlanet.pkgs.add(oldMe.pack);
+				}
 			}
 
 			tmp = ss.optString("targetPlanetName");
@@ -82,14 +85,6 @@ public class SpaceShip
 		}
 		else
 		{
-			inPlanetSince = System.currentTimeMillis();
-			arriveWhen = inPlanetSince + ss.optLong("arriveAfterMs", 0);
-
-			tmp = ss.optString("planetName");
-			if( tmp != null )
-			{
-				planet = Galaxy.planets.get(tmp);
-			}
 
 			tmp = ss.optString("targetPlanetName");
 			if( tmp != null )

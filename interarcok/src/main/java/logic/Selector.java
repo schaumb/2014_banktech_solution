@@ -105,6 +105,7 @@ public class Selector
 
 						double dist = pl.distance(css.planet);
 						if(		pl.pkgs.size() > 0 &&
+								pl.pkgs.get(0).lastOwner == null &&
 								(tsssw == null || tsssw.first().arriveWhen > d) &&
 								pl.pkgs.get(0).claim == null)
 						{

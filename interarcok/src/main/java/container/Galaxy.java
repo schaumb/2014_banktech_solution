@@ -1,16 +1,17 @@
 package container;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
 
 public class Galaxy
 {
-	public static HashMap<Integer, Package> packages = new HashMap<Integer, Package>();
-	public static HashMap<String, Planet> planets = new HashMap<String, Planet>();
-	public static HashMap<String, Owner> teams = new HashMap<String, Owner>();
-	public static HashMap<String, SpaceShip> ships = new HashMap<String, SpaceShip>();
+	public static ConcurrentHashMap<Integer, Package> packages = new ConcurrentHashMap<Integer, Package>();
+	public static ConcurrentHashMap<String, Planet> planets = new ConcurrentHashMap<String, Planet>();
+	public static ConcurrentHashMap<String, Owner> teams = new ConcurrentHashMap<String, Owner>();
+	public static ConcurrentHashMap<String, SpaceShip> ships = new ConcurrentHashMap<String, SpaceShip>();
 
 	public static void parsePlanets( JSONObject job ) throws JSONException
 	{
