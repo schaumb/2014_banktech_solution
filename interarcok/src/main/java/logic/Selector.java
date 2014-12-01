@@ -28,6 +28,7 @@ public class Selector
 	static HashMap<Planet,TreeSet<SpaceShip>> planet_arrivers_with_package;
 	public static HashMap<Planet,TreeSet<SpaceShip>> planet_arrivers_without_package;
 	/*static HashMap<Planet,TreeSet<SpaceShip>> there;*/
+
 	static double PriorityOfNobodysPlanet = 100;
 	static double PriorityOfNobodysPackage = 1000;
 	public static Random rand = new Random(System.currentTimeMillis());
@@ -69,34 +70,16 @@ public class Selector
 
 				tsss.add(ss.getValue());
 			}
-			/*
-			else if(ss.getValue().planet != null)
-			{
-				Planet who = ss.getValue().planet;
-				TreeSet<SpaceShip> tsss = there.get(who);
-
-				if(tsss == null)
-				{
-					tsss = new TreeSet<SpaceShip>(new SpaceShipComparator());
-					pts.put(who, tsss);
-				}
-
-				tsss.add(ss.getValue());
-			}*/
 		}
 	}
 
 	public static Planet calculateNext(ControllableSpaceShip css)
 	{
-		boolean containsNobodysPackage = css.planet.containsNobodysPackage();
-		boolean hasPickPack = containsNobodysPackage ||
-				((css.planet.owned == null || !css.planet.owned.areWe()) && css.planet.pkgs.size() > 0 && !css.planet.pkgs.get(0).isMoveing);
-		boolean claimToPackage = hasPickPack && css.pack == null;
+		boolean hasPackage = css.pack != null;
 
 		long now = System.currentTimeMillis();
 		// vagy van csomagunk (amit nem tudunk letenni), vagy van felvehető csomag a jelenlegi bolygón
-		if((css.pack != null && css.planet.owned != null) ||
-				claimToPackage)
+		if(hasPackage)
 		{
 			System.out.println(css.getUniqueId() + " keresunk leteendo bolygot");
 			// eloszor keresunk egy ures bolygot, ahova van eselyunk erkezni,
@@ -104,50 +87,55 @@ public class Selector
 			Planet pmin = null;
 			double minDist = Double.POSITIVE_INFINITY;
 
-			for(Entry<String, Planet> p : Galaxy.planets.entrySet())
+			for(Planet pl : Galaxy.planets.values())
 			{
-				Planet pl = p.getValue();
-				TreeSet<SpaceShip> tsss = planet_arrivers_with_package.get(pl);
-				if( pl.owned == null &&
+				if(		pl.owned == null &&
+						pl.claim == null &&
 						!pl.equals(css.planet) &&
-						(css.pack == null || !css.pack.lastPlanet.equals(pl)) &&
-						(tsss == null ||
-							tsss.first().arriveWhen >
-							now + (long)(pl.distance(css.planet) / SpaceShip.speed + 1) )
-						)
+						!pl.equals(css.pack.lastPlanet))
 				{
-					double dist = pl.distance(css.planet);
-					if(dist < minDist)
+					TreeSet<SpaceShip> tsssw = planet_arrivers_without_package.get(pl);
+					TreeSet<SpaceShip> tsss = planet_arrivers_with_package.get(pl);
+					double d = now + (long)(pl.distance(css.planet) / SpaceShip.speedWithtPackage + 1);
+
+					if( 	(tsss == null ||
+								tsss.first().arriveWhen > d )
+							)
 					{
-						minDist = dist;
-						pmin = pl;
+
+						double dist = pl.distance(css.planet);
+						if(		pl.pkgs.size() > 0 &&
+								(tsssw == null || tsssw.first().arriveWhen > d) &&
+								pl.pkgs.get(0).claim == null)
+						{
+							dist -= 5;
+						}
+
+						if(dist < minDist)
+						{
+							minDist = dist;
+							pmin = pl;
+						}
 					}
-				}
-			}
-			if(claimToPackage)
-			{
-				if(containsNobodysPackage)
-				{
-					css.planet.setNobodysPackageToMove();
-				}
-				else
-				{
-					css.planet.pkgs.get(0).isMoveing = true;
 				}
 			}
 
 			if(pmin != null)
 			{
-				System.out.println(css.getUniqueId() + " go to " + pmin.getName() + " van csomag v felv");
+				if(pmin.pkgs.size() > 0)
+				{
+					pmin.pkgs.get(0).claim = css.getUniqueId();
+					pmin.claim = css.getUniqueId();
+				}
+
+				System.out.println(css.getUniqueId() + " go to " + pmin.getName() + " elv le lehet tenni + " + (pmin.pkgs.size() == 1));
 				return pmin;
 			}
 
 			// ha nem sikerult, akkor probaljunk meg valakit kovetni
 		}
 		// ha nincs nálunk csomag, és nem is található a jelenlegi bolygónkon
-		// vagy letesszük, és (feltételezve) felveszünk
-		if( (css.pack == null && !hasPickPack) ||
-				(css.pack != null && css.planet.owned == null && css.pack.lastPlanet != css.planet) )
+		else
 		{
 			System.out.println(css.getUniqueId() + " keresunk felvehető csomagot");
 			// keressünk egy felvehető package-t
@@ -157,19 +145,37 @@ public class Selector
 			double minDist = Double.POSITIVE_INFINITY;
 			for(Package pa : Galaxy.packages.values())
 			{
-				if( (pa.lastOwner == null || !pa.lastOwner.areWe() ) && !pa.isMoveing )
+				if( 	(pa.lastOwner == null || !pa.lastOwner.areWe() ) &&
+						pa.claim == null &&
+						!pa.isMoveing.get() &&
+						!pa.lastPlanet.hasMine.get() &&
+						!pa.lastPlanet.equals(css.planet) )
 				{
-
-					TreeSet<SpaceShip> tsss = planet_arrivers_without_package.get(pa.lastPlanet);
-
-					if(!pa.lastPlanet.hasmine &&
-						!pa.lastPlanet.equals(css.planet) &&
-							(tsss == null ||
-							tsss.first().arriveWhen >
-							now + (long)(pa.lastPlanet.distance(css.planet) / SpaceShip.speed + 1)) )
+					TreeSet<SpaceShip> tsssw = planet_arrivers_without_package.get(pa.lastPlanet);
+					TreeSet<SpaceShip> tsss = planet_arrivers_with_package.get(pa.lastPlanet);
+					double d = now + (long)(pa.lastPlanet.distance(css.planet) / SpaceShip.speed + 1);
+					if(		(tsssw == null ||
+								(tsssw.first().arriveWhen > d ||
+								(pa.lastPlanet.pkgs.size() > 1 &&
+								(tsssw.size() < 2 || ((SpaceShip)tsssw.toArray()[1]).arriveWhen > d)
+							))
+							))
 					{
-						double dist = pa.lastPlanet.distance(css.planet) - (pa.lastPlanet.owned==null ? PriorityOfNobodysPlanet : 0 )
-											- (pa.lastOwner == null ? PriorityOfNobodysPackage : 0);
+						double dist = pa.lastPlanet.distance(css.planet);
+						if( pa.lastPlanet.pkgs.size() > 1 )
+						{
+							dist -= (pa.lastOwner == null) ? 5 : 2;
+						}
+						else if(pa.lastOwner == null)
+						{
+							dist -= 10;
+						}
+
+						if( tsss != null && tsss.first().arriveWhen < d )
+						{
+							dist += 5;
+						}
+
 						if(dist < minDist)
 						{
 							minDist = dist;
@@ -181,8 +187,8 @@ public class Selector
 			}
 			if(pkg != null)
 			{
+				pkg.claim = css.getUniqueId();
 				System.out.println(css.getUniqueId() + " go to " + pkg.lastPlanet.getName() + " van felveheto csomag " + pkg.getPackageId());
-				pkg.isMoveing = true;
 				return pkg.lastPlanet;
 				// return pmin;
 			}
@@ -194,16 +200,14 @@ public class Selector
 
 		SpaceShip ssmin = null;
 		long minTimeDist = Long.MAX_VALUE;
-		boolean maybeWithPackage = hasPickPack || css.pack != null;
-
-		double speed = maybeWithPackage ? SpaceShip.speedWithtPackage : SpaceShip.speed;
-
+		double speed = hasPackage ? SpaceShip.speedWithtPackage : SpaceShip.speed;
 		long saveArriveWhen = css.arriveWhen;
 
 		for(Entry<Planet, TreeSet<SpaceShip>> pc : planet_arrivers_without_package.entrySet())
 		{
-			if(css.planet.equals(pc.getKey()) ||
-					(css.pack != null && css.pack.lastPlanet.equals(pc.getKey())))
+			if(		css.planet.equals(pc.getKey()) ||
+					(css.pack != null && css.pack.lastPlanet.equals(pc.getKey())) &&
+					pc.getKey().claim != null)
 				continue;
 
 			css.arriveWhen = now + (long)(pc.getKey().distance(css.planet) / speed + 1);
@@ -221,17 +225,6 @@ public class Selector
 		}
 		css.arriveWhen = saveArriveWhen;
 
-		if(claimToPackage)
-		{
-			if(containsNobodysPackage)
-			{
-				css.planet.setNobodysPackageToMove();
-			}
-			else
-			{
-				css.planet.pkgs.get(0).isMoveing = true;
-			}
-		}
 
 		if(ssmin != null) // követjük ss-t
 		{
@@ -244,69 +237,57 @@ public class Selector
 
 
 		// ha szerzünk csomagot menjünk egy olyan helyre, ahol van (nem lefagyott egyén) üresen áll más bolygója felett ( vagy előttünk van )
-
-
-		// ha nincs csomagunk menjünk el egy olyan bolygóra, ami nem a mienk
-
-
-		if(css.pack == null && !hasPickPack)
+		if(hasPackage)
 		{
 			double minCost = Double.POSITIVE_INFINITY;
 			SpaceShip mss = null;
 			for(SpaceShip ss : Galaxy.ships.values())
 			{
-				if(ss.pack != null && !ss.team.areWe())
+				if(		!ss.team.areWe() &&
+						ss.pack == null &&
+						ss.planet != null &&
+						ss.planet.pkgs.size() == 1 &&
+						!ss.team.equals(ss.planet.owned) &&
+						ss.arriveWhen - ss.inPlanetSince < 550 &&
+						!ss.planet.equals(css.planet) &&
+						!ss.planet.equals(css.pack.lastPlanet)
+					)
 				{
-					if(ss.planet == null)
+					TreeSet<SpaceShip> tsss = planet_arrivers_with_package.get(ss.planet);
+
+					double c = now + (long)(ss.planet.distance(css.planet) / SpaceShip.speedWithtPackage + 1);
+
+					if(		(tsss == null ||
+							tsss.first().arriveWhen < c ))
 					{
-						double dist = ss.targetPlanet.distance(css.planet) / SpaceShip.speed;
-						if(dist < minCost && !ss.targetPlanet.equals(css.planet))
-						{
-							minCost = dist;
-							mss = ss;
-						}
+						c += 10;
 					}
-					else
+					if(c < minCost)
 					{
-						double dist = ss.planet.distance(css.planet) / SpaceShip.speed;
-						if(dist < minCost && !ss.planet.equals(css.planet) && ss.arriveWhen - ss.inPlanetSince < 500)
-						{
-							minCost = dist + ss.arriveWhen - ss.inPlanetSince;
-							mss = ss;
-						}
-						System.out.println(css.getUniqueId() + " go to " + ss.planet.getName() + " because there someone with a package");
+						minCost = c;
+						//pmin = pa.lastPlanet;
+						mss = ss;
 					}
 				}
 			}
 			if(mss != null)
 			{
-				if(mss.planet == null)
-				{
-					System.out.println(css.getUniqueId() + " go to " + mss.targetPlanet.getName() + " because there moveing someone package");
-					return mss.targetPlanet;
-				}
-				else
-				{
-
-				}
+				System.out.println(css.getUniqueId() + " go to " + mss.planet.getName() + " kovesd2 " + mss.getUniqueId());
+				return mss.planet;
 			}
-
-			for(SpaceShip ss : Galaxy.ships.values())
-			{
-				if(ss.planet != null &&
-					ss.planet.owned != null &&
-					ss.pack == null &&
-					!ss.planet.owned.equals(ss.team))
-				{
-
-				}
-			}
-
+		}
+		// ha nincs csomagunk menjünk el egy olyan bolygóra, ami nem a mienk, és van rajta csomag
+		else
+		{
 			for(Planet p : Galaxy.planets.values())
 			{
-				if((p.owned != null && !p.owned.areWe()) && !p.equals(css.planet))
+				if(		p.owned != null &&
+						!p.owned.areWe() &&
+						!p.equals(css.planet) &&
+						p.pkgs.size() > 0
+						)
 				{
-					System.out.println(css.getUniqueId() + " go to " + p.getName() + " because there someone ");
+					System.out.println(css.getUniqueId() + " go to " + p.getName() + " because there's a package ");
 					return p;
 				}
 			}

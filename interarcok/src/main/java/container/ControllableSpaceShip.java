@@ -1,6 +1,5 @@
 package container;
 
-import java.util.Random;
 import java.util.TreeSet;
 
 import logic.Selector;
@@ -26,8 +25,7 @@ public class ControllableSpaceShip extends SpaceShip
 			break;
 		case -1 : crash(); break;
 		default:
-			System.out.println(getUniqueId() + " drop with " + res );
-			pack.isMoveing = false;
+			pack.isMoveing.set(false);
 			pack.lastOwner = team;
 			pack.lastPlanet = planet;
 			planet.owned = team;
@@ -46,13 +44,12 @@ public class ControllableSpaceShip extends SpaceShip
 		{
 		case -1 : crash(); break;
 		case 0 :
-			pack.isMoveing = true;
 			this.pack = pack;
+		case -2 : // valaki elvitte
+			pack.isMoveing.set(true);
+			pack.claim = null;
 			planet.pkgs.remove(pack);
 			break;
-		case -2 : // vki elvitte :(
-			pack.isMoveing = true;
-			planet.pkgs.remove(pack);
 		}
 		return res;
 	}
@@ -77,7 +74,7 @@ public class ControllableSpaceShip extends SpaceShip
 		{
 		case -1 : crash(); break;
 		default:
-			planet.hasmine = true;
+			planet.hasMine.set(true);
 			team.remainingMines = res;
 			break;
 		}
@@ -90,65 +87,45 @@ public class ControllableSpaceShip extends SpaceShip
 		System.out.println(getUniqueId() + " crashed!");
 	}
 
-	public void doIt()
+	public void doIt() throws InterruptedException
 	{
-		if(planet == null || arriveWhen > System.currentTimeMillis()) return;
-		boolean isDropped = false;
-		boolean isPicked = false;
-		if(planet.owned == null)
+		if(planet.owned == null && pack != null && pack.lastPlanet != planet)
 		{
-			if(pack != null && pack.lastPlanet != planet)
-			{
-				isDropped = drop();
-			}
+			drop();
 		}
 
-		if(pack == null && planet.pkgs.size() > 0)
+		for(final Package p : planet.pkgs)
 		{
-			for(Package pkg : planet.pkgs)
+			if( p.claim == null || getUniqueId().equals(p.claim))
 			{
-				if(pkg.lastOwner != null && pkg.lastOwner.areWe()) continue;
-
-				int res = pick(pkg);
-				if(res != -2)
+				if(pick(p) != -2)
 				{
-					isPicked = res == 0;
 					break;
 				}
-
 			}
 		}
 
-		if(isDropped && team.remainingMines > 0)
+		if(planet.owned != null && planet.owned.areWe() && !planet.hasMine.get())
 		{
 			TreeSet<SpaceShip> ss = Selector.planet_arrivers_without_package.get(planet);
-			if(Selector.rand.nextInt(isPicked?2:3) == 0
+			if(Selector.rand.nextInt(20) == 0
 					|| (ss != null && ss.size() > 0))
 			{
 				installMine();
 			}
 		}
 
-		if(targetPlanet != null)
+		targetPlanet = Selector.calculateNext(this);
+
+		if(targetPlanet != null) // always true
 		{
 			go();
-		}
-		else
-		{
-			System.out.println("NO TARGET " + getUniqueId());
-			System.exit(1);
-		}
-	}
+			Thread.sleep(arriveWhen - System.currentTimeMillis());
 
-	public boolean isArrived()
-	{
-		if(arriveWhen <= System.currentTimeMillis())
-		{
 			planet = targetPlanet;
 			targetPlanet = null;
-			return true;
+			planet.claim = null;
 		}
-		return false;
 	}
 }
 

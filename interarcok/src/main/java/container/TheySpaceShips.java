@@ -11,16 +11,30 @@ public class TheySpaceShips extends Owner
 	public TheySpaceShips( JSONObject job ) throws JSONException
 	{
 		name = job.getString("userName");
+		Owner oldMe = Galaxy.teams.get(name);
 
-		JSONArray pls = job.getJSONArray("ships");
-		for( int i = 0; i < pls.length() ; ++i )
+		if(oldMe != null)
 		{
-			JSONObject sps = pls.getJSONObject(i);
+			JSONArray pls = job.getJSONArray("ships");
+			for( int i = 0; i < pls.length() ; ++i )
+			{
+				JSONObject sps = pls.getJSONObject(i);
 
-			theyShips.add(new SpaceShip(this, sps));
+				new SpaceShip(this, sps);
+			}
 		}
+		else
+		{
+			JSONArray pls = job.getJSONArray("ships");
+			for( int i = 0; i < pls.length() ; ++i )
+			{
+				JSONObject sps = pls.getJSONObject(i);
 
-		Galaxy.teams.put(name, this);
+				theyShips.add(new SpaceShip(this, sps));
+			}
+
+			Galaxy.teams.put(name, this);
+		}
 	}
 
 	@Override

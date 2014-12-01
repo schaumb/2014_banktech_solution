@@ -33,5 +33,4 @@ public class Galaxy
 			new TheySpaceShips(planet);
 		}
 	}
-
 }
