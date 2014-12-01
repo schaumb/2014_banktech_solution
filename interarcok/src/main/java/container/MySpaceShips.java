@@ -1,6 +1,7 @@
 package container;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map.Entry;
 
 import logic.Selector;
@@ -33,10 +34,15 @@ public class MySpaceShips extends Owner
 
 	public Long doLogicStuff() throws InterruptedException
 	{
-		int myPackages = 0;
 		int moveingPackage = 0;
+		HashMap<Owner,Integer> pckgnum = new HashMap<Owner,Integer>();
 		String str = new String();
 		str += "Planets\n";
+		pckgnum.put(null, 0);
+		for(Owner o : Galaxy.teams.values())
+		{
+			pckgnum.put(o, 0);
+		}
 		for(Entry<String, Planet> pl : Galaxy.planets.entrySet())
 		{
 			str += pl.getValue().name + " " +
@@ -47,10 +53,9 @@ public class MySpaceShips extends Owner
 		{
 			str += pl.getKey() + " " + pl.getValue().isMoveing  + " " +
 					(pl.getValue().lastOwner == null? "null" : pl.getValue().lastOwner.name) + "\n";
-			if(pl.getValue().lastOwner != null && pl.getValue().lastOwner.areWe())
-			{
-				++myPackages;
-			}
+
+			pckgnum.put(pl.getValue().lastOwner, pckgnum.get(pl.getValue().lastOwner) + 1);
+
 			if(pl.getValue().isMoveing)
 			{
 				++moveingPackage;
@@ -59,6 +64,14 @@ public class MySpaceShips extends Owner
 		str += "Ships\n";
 		for(Entry<String, SpaceShip> pl : Galaxy.ships.entrySet())
 		{
+			if(pl.getValue().team.areWe())
+			{
+				System.out.println( pl.getKey() + " " +
+						" in: " +(pl.getValue().planet == null? "null" : pl.getValue().planet.name) +
+						" since: " + (System.currentTimeMillis()-pl.getValue().inPlanetSince) +
+						" Targe" + (pl.getValue().targetPlanet == null ? "null" : pl.getValue().targetPlanet.name) +
+						" Packa" + (pl.getValue().pack == null ? "null" : pl.getValue().pack.packageId));
+			}
 			str += pl.getKey() + " " +
 					" in: " +(pl.getValue().planet == null? "null" : pl.getValue().planet.name) +
 					" since: " + (System.currentTimeMillis()-pl.getValue().inPlanetSince) +
@@ -66,7 +79,12 @@ public class MySpaceShips extends Owner
 					" Packa" + (pl.getValue().pack == null ? "null" : pl.getValue().pack.packageId) + "\n";
 		}
 		Loggers.logLogger.info(str);
-		System.out.println(myPackages + "/" + moveingPackage + " = my/move");
+		System.out.println(pckgnum.get(this) + "/" + moveingPackage + " = my/move");
+		for(Integer i : pckgnum.values())
+		{
+			System.out.print(i + " ");
+		}
+		System.out.println();
 
 		for(ControllableSpaceShip css : myShips)
 		{

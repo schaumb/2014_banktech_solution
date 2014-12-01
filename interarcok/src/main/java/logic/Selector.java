@@ -29,6 +29,7 @@ public class Selector
 	public static HashMap<Planet,TreeSet<SpaceShip>> planet_arrivers_without_package;
 	/*static HashMap<Planet,TreeSet<SpaceShip>> there;*/
 	static double PriorityOfNobodysPlanet = 100;
+	static double PriorityOfNobodysPackage = 1000;
 	static Random rand = new Random(System.currentTimeMillis());
 
 	public static void recalculatePTS()
@@ -148,17 +149,15 @@ public class Selector
 		if( (css.pack == null && !hasPickPack) ||
 				(css.pack != null && css.planet.owned == null && css.pack.lastPlanet != css.planet) )
 		{
-			System.out.println(css.getUniqueId() + " keresunk felvehetp csomagot");
+			System.out.println(css.getUniqueId() + " keresunk felvehető csomagot");
 			// keressünk egy felvehető package-t
 			// ha van
 			//Planet pmin = null;
 			Package pkg = null;
 			double minDist = Double.POSITIVE_INFINITY;
-			for(Entry<Integer, Package> p : Galaxy.packages.entrySet())
+			for(Package pa : Galaxy.packages.values())
 			{
-				Package pa = p.getValue();
-				if( pa.lastOwner == null &&
-						!pa.isMoveing )
+				if( (pa.lastOwner == null || !pa.lastOwner.areWe() ) && !pa.isMoveing )
 				{
 
 					TreeSet<SpaceShip> tsss = planet_arrivers_without_package.get(pa.lastPlanet);
@@ -169,7 +168,8 @@ public class Selector
 							tsss.first().arriveWhen >
 							now + (long)(pa.lastPlanet.distance(css.planet) / SpaceShip.speed + 1)) )
 					{
-						double dist = pa.lastPlanet.distance(css.planet) - (pa.lastPlanet.owned==null ? PriorityOfNobodysPlanet : 0 );
+						double dist = pa.lastPlanet.distance(css.planet) - (pa.lastPlanet.owned==null ? PriorityOfNobodysPlanet : 0 )
+											- (pa.lastOwner == null ? PriorityOfNobodysPackage : 0);
 						if(dist < minDist)
 						{
 							minDist = dist;
@@ -245,23 +245,75 @@ public class Selector
 
 		// ha szerzünk csomagot menjünk egy olyan helyre, ahol van (nem lefagyott egyén) üresen áll más bolygója felett ( vagy előttünk van )
 
+
 		// ha nincs csomagunk menjünk el egy olyan bolygóra, ami nem a mienk
 
-		Planet prand = css.planet;
 
 		if(css.pack == null && !hasPickPack)
 		{
+			double minCost = Double.POSITIVE_INFINITY;
+			SpaceShip mss = null;
+			for(SpaceShip ss : Galaxy.ships.values())
+			{
+				if(ss.pack != null && !ss.team.areWe())
+				{
+					if(ss.planet == null)
+					{
+						double dist = ss.targetPlanet.distance(css.planet) / SpaceShip.speed;
+						if(dist < minCost && !ss.targetPlanet.equals(css.planet))
+						{
+							minCost = dist;
+							mss = ss;
+						}
+					}
+					else
+					{
+						double dist = ss.planet.distance(css.planet) / SpaceShip.speed;
+						if(dist < minCost && !ss.planet.equals(css.planet) && ss.arriveWhen - ss.inPlanetSince < 500)
+						{
+							minCost = dist + ss.arriveWhen - ss.inPlanetSince;
+							mss = ss;
+						}
+						System.out.println(css.getUniqueId() + " go to " + ss.planet.getName() + " because there someone with a package");
+					}
+				}
+			}
+			if(mss != null)
+			{
+				if(mss.planet == null)
+				{
+					System.out.println(css.getUniqueId() + " go to " + mss.targetPlanet.getName() + " because there moveing someone package");
+					return mss.targetPlanet;
+				}
+				else
+				{
+
+				}
+			}
+
+			for(SpaceShip ss : Galaxy.ships.values())
+			{
+				if(ss.planet != null &&
+					ss.planet.owned != null &&
+					ss.pack == null &&
+					!ss.planet.owned.equals(ss.team))
+				{
+
+				}
+			}
+
 			for(Planet p : Galaxy.planets.values())
 			{
-				if(p.owned == null || !p.owned.areWe())
+				if((p.owned != null && !p.owned.areWe()) && !p.equals(css.planet))
 				{
-					prand = p;
-					break;
+					System.out.println(css.getUniqueId() + " go to " + p.getName() + " because there someone ");
+					return p;
 				}
 			}
 		}
 
 		// getRand bolygó
+		Planet prand = css.planet;
 		while(css.planet.equals(prand) ||
 				(css.pack != null && css.pack.lastPlanet.equals(prand)))
 		{
