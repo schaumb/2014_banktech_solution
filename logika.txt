@@ -1,0 +1,25 @@
+Kezdetben:
+
+Keresünk nem foglalt csomagokat, és próbáljuk arrébbvinni (prioritásos azon egyedüli csomagok, melyek bolygója még nincs elfoglalva, és mi nem tettünk rá aknát, és semely "hajó" nem tart felé, (vagy ha igen, mi előbb érnénk oda) - ha több van, hash szerinti elsőre megyünk (és nem távolságra!))
+Ha nem sikerült, mert elkapták előttünk (megtörténhet adatinkonzisztencia miatt), akkor megyünk tovább.
+
+Ha nincs csomagunk, és nincs szabad bolygós csomag a közelben, amihez mi előbb érnénk oda:
+A hajóinkkal próbálunk felvenni csomagot az épp tartózkodott bolygón, (ami nem a mienk)
+    - akár sikerül, akár nem, "követünk" valakit (nincs nála csomag) úgy, hogy megnézzük mikor érkezik egy bizonyos bolygóra (ami már el van foglalva), 
+        és ha mi is egy picivel később odaérkezünk (kiszámoljuk), akkor oda megyünk.
+        jó eset:
+        - Ha sikerült felvenni a csomagot, és ő neki is, akkor elfoglalhatjuk a bolygót (letesszük a csomagot)
+        - Ha nem sikerült felvenni (vki elkapkodta előlünk), és ő aknára lépett, akkor fel tudjuk venni helyette a csomagot
+        rossz eset:
+        - Ha sikerül felvenni a csomagot, de neki nem az akna miatt, új bolygót keresünk
+        - Ha nem sikerül felvenni, de neki sikerült, akkor megintcsak új bolygót keresünk
+        - Felvétel közbe lerobbanunk :(
+
+Ha van csomagunk, akkor 
+    - Ha van üres bolygó, és előbb érünk oda, mint más (akinek van csomagja), akkor megpróbálunk odamenni.
+    - Ha nincs, akkor "követünk" valakit (nincs nála csomag) úgy, hogy megnézzük mikor érkezik egy bizonyos bolygóra (ami már el van foglalva)
+
+Egy állomáson (egy körben) a hajónk cselekvése, (kívülről irányítva a következő cél) :
+    - try drop
+    - try pick
+    - go
