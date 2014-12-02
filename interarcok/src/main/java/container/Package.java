@@ -13,61 +13,19 @@ public class Package
 	public Package(JSONObject pack, boolean isMoveing) throws JSONException
 	{
 		packageId = pack.getInt("packageId");
-		Package oldMe = Galaxy.packages.get(packageId);
 
-		if(oldMe != null)
-		{
+		this.isMoveing.set(isMoveing);
+		lastPlanetName = pack.getString("lastPlanet");
 
-			String tmp = pack.optString("lastOwner");
-			if( tmp != null )
-			{
-				oldMe.lastOwner = Galaxy.teams.get(tmp);
-			}
+		lastOwnerName = pack.optString("lastOwner");
 
-			lastPlanet = Galaxy.planets.get(pack.getString("lastPlanet"));
-
-			if(!lastPlanet.equals(oldMe.lastPlanet))
-			{
-				oldMe.lastPlanet.pkgs.remove(this);
-
-				if(!isMoveing)
-				{
-					lastPlanet.pkgs.add(this);
-					lastPlanet.owned = oldMe.lastOwner;
-				}
-				oldMe.lastPlanet = lastPlanet;
-			}
-			else if(isMoveing && !oldMe.isMoveing.get())
-			{
-				oldMe.lastPlanet.pkgs.remove(this);
-			}
-
-			oldMe.isMoveing.set(isMoveing);
-		}
-		else
-		{
-			this.isMoveing.set(isMoveing);
-			lastPlanet = Galaxy.planets.get(pack.getString("lastPlanet"));
-
-			String tmp = pack.optString("lastOwner");
-			if( tmp != null )
-			{
-				lastOwner = Galaxy.teams.get(tmp);
-
-				if(!isMoveing)
-				{
-					lastPlanet.owned = lastOwner;
-				}
-			}
-
-			Galaxy.packages.put(packageId, this);
-		}
+		Galaxy.packages.put(packageId, this);
 	}
 
 	public AtomicBoolean isMoveing = new AtomicBoolean(); //  ha mozgasba van, vagy ha epp kivalasztottuk felvetelre!
 	final Integer packageId;
-	public Planet lastPlanet;
-	public Owner lastOwner = null;
+	public String lastPlanetName;
+	public String lastOwnerName;
 
 	public Integer getPackageId()
 	{

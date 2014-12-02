@@ -7,11 +7,13 @@ import org.json.JSONObject;
 
 public class MySpaceShips extends Owner
 {
+	public static String teamName;
 	ArrayList<ControllableSpaceShip> myShips = new ArrayList<ControllableSpaceShip>();
 
 	public MySpaceShips( JSONObject job ) throws JSONException
 	{
 		name = job.getString("userName");
+		teamName = name;
 		remainingMines = job.getInt("remainingMines");
 
 		JSONArray pls = job.getJSONArray("ships");

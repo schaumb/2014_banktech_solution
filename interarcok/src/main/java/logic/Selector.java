@@ -8,25 +8,28 @@ import java.util.TreeSet;
 
 import container.ControllableSpaceShip;
 import container.Galaxy;
+import container.MySpaceShips;
 import container.Planet;
 import container.Package;
 import container.SpaceShip;
 
 public class Selector
 {
-	public static class SpaceShipComparator implements Comparator<SpaceShip>
+	public static class SpaceShipComparator implements Comparator<String>
 	{
 		@Override
-		public int compare(SpaceShip o1, SpaceShip o2)
+		public int compare(String o1, String o2)
 		{
-			int time = o1.arriveWhen.compareTo(o2.arriveWhen);
+			SpaceShip s1 = Galaxy.getSpaceShip(o1);
+			SpaceShip s2 = Galaxy.getSpaceShip(o2);
+			int time = s1.arriveWhen.compareTo(s2.arriveWhen);
 			if(time != 0) return time;
-			return o1.getUniqueId().compareTo(o2.getUniqueId());
+			return s1.getUniqueId().compareTo(s2.getUniqueId());
 		}
 	}
 
-	static HashMap<Planet,TreeSet<SpaceShip>> planet_arrivers_with_package;
-	public static HashMap<Planet,TreeSet<SpaceShip>> planet_arrivers_without_package;
+	static HashMap<String,TreeSet<String>> planet_arrivers_with_package;
+	public static HashMap<String,TreeSet<String>> planet_arrivers_without_package;
 	/*static HashMap<Planet,TreeSet<SpaceShip>> there;*/
 
 	static double PriorityOfNobodysPlanet = 100;
@@ -35,24 +38,24 @@ public class Selector
 
 	public static void recalculatePTS()
 	{
-		planet_arrivers_with_package = new HashMap<Planet,TreeSet<SpaceShip>>();
-		planet_arrivers_without_package = new HashMap<Planet,TreeSet<SpaceShip>>();
+		planet_arrivers_with_package = new HashMap<String,TreeSet<String>>();
+		planet_arrivers_without_package = new HashMap<String,TreeSet<String>>();
 		long now = System.currentTimeMillis();
 		for(Entry<String, SpaceShip> ss : Galaxy.ships.entrySet())
 		{
-			if(ss.getValue().team.areWe()) continue;
+			if(ss.getValue().teamName.equals(MySpaceShips.teamName)) continue;
 
-			if(ss.getValue().arriveWhen > now && ss.getValue().targetPlanet != null)
+			if(ss.getValue().arriveWhen > now && ss.getValue().targetPlanetName != null)
 			{
-				Planet who = ss.getValue().targetPlanet;
-				TreeSet<SpaceShip> tsss;
+				String who = ss.getValue().targetPlanetName;
+				TreeSet<String> tsss;
 				if(ss.getValue().pack == null)
 				{
 					tsss = planet_arrivers_without_package.get(who);
 
 					if(tsss == null)
 					{
-						tsss = new TreeSet<SpaceShip>(new SpaceShipComparator());
+						tsss = new TreeSet<String>(new SpaceShipComparator());
 						planet_arrivers_without_package.put(who, tsss);
 					}
 				}
@@ -62,13 +65,13 @@ public class Selector
 
 					if(tsss == null)
 					{
-						tsss = new TreeSet<SpaceShip>(new SpaceShipComparator());
+						tsss = new TreeSet<String>(new SpaceShipComparator());
 						planet_arrivers_with_package.put(who, tsss);
 					}
 				}
 
 
-				tsss.add(ss.getValue());
+				tsss.add(ss.getValue().getUniqueId());
 			}
 		}
 	}
@@ -89,25 +92,25 @@ public class Selector
 
 			for(Planet pl : Galaxy.planets.values())
 			{
-				if(		pl.owned == null &&
+				if(		pl.ownerName == null &&
 						pl.claim == null &&
-						!pl.equals(css.planet) &&
-						!pl.equals(css.pack.lastPlanet))
+						!pl.name.equals(css.planetName) &&
+						!pl.name.equals(Galaxy.getPackage(css.pack).lastPlanetName))
 				{
-					TreeSet<SpaceShip> tsssw = planet_arrivers_without_package.get(pl);
-					TreeSet<SpaceShip> tsss = planet_arrivers_with_package.get(pl);
-					double d = now + (long)(pl.distance(css.planet) / SpaceShip.speedWithtPackage + 1);
+					TreeSet<String> tsssw = planet_arrivers_without_package.get(pl.name);
+					TreeSet<String> tsss = planet_arrivers_with_package.get(pl.name);
+					double d = now + (long)(pl.distance(Galaxy.getPlanet(css.planetName)) / SpaceShip.speedWithtPackage + 1);
 
 					if( 	(tsss == null ||
-								tsss.first().arriveWhen > d )
+								Galaxy.getSpaceShip(tsss.first()).arriveWhen > d )
 							)
 					{
 
-						double dist = pl.distance(css.planet);
+						double dist = pl.distance(Galaxy.getPlanet(css.planetName));
 						if(		pl.pkgs.size() > 0 &&
-								pl.pkgs.get(0).lastOwner == null &&
-								(tsssw == null || tsssw.first().arriveWhen > d) &&
-								pl.pkgs.get(0).claim == null)
+								Galaxy.getPackage(pl.pkgs.get(0)).lastOwnerName == null &&
+								(tsssw == null || Galaxy.getSpaceShip(tsssw.first()).arriveWhen > d) &&
+								Galaxy.getPackage(pl.pkgs.get(0)).claim == null)
 						{
 							dist -= 5;
 						}
@@ -125,7 +128,7 @@ public class Selector
 			{
 				if(pmin.pkgs.size() > 0)
 				{
-					pmin.pkgs.get(0).claim = css.getUniqueId();
+					Galaxy.getPackage(pmin.pkgs.get(0)).claim = css.getUniqueId();
 					pmin.claim = css.getUniqueId();
 				}
 
@@ -146,33 +149,33 @@ public class Selector
 			double minDist = Double.POSITIVE_INFINITY;
 			for(Package pa : Galaxy.packages.values())
 			{
-				if( 	(pa.lastOwner == null || !pa.lastOwner.areWe() ) &&
+				if( 	(pa.lastOwnerName == null || !pa.lastOwnerName.equals(MySpaceShips.teamName) ) &&
 						pa.claim == null &&
 						!pa.isMoveing.get() &&
-						!pa.lastPlanet.hasMine.get() &&
-						!pa.lastPlanet.equals(css.planet) )
+						!Galaxy.getPlanet(pa.lastPlanetName).hasMine.get() &&
+						!pa.lastPlanetName.equals(css.planetName) )
 				{
-					TreeSet<SpaceShip> tsssw = planet_arrivers_without_package.get(pa.lastPlanet);
-					TreeSet<SpaceShip> tsss = planet_arrivers_with_package.get(pa.lastPlanet);
-					double d = now + (long)(pa.lastPlanet.distance(css.planet) / SpaceShip.speed + 1);
+					TreeSet<String> tsssw = planet_arrivers_without_package.get(pa.lastPlanetName);
+					TreeSet<String> tsss = planet_arrivers_with_package.get(pa.lastPlanetName);
+					double d = now + (long)(Galaxy.getPlanet(pa.lastPlanetName).distance(Galaxy.getPlanet(css.planetName)) / SpaceShip.speed + 1);
 					if(		(tsssw == null ||
-								(tsssw.first().arriveWhen > d ||
-								(pa.lastPlanet.pkgs.size() > 1 &&
+								(Galaxy.getSpaceShip(tsssw.first()).arriveWhen > d ||
+								(Galaxy.getPlanet(pa.lastPlanetName).pkgs.size() > 1 &&
 								(tsssw.size() < 2 || ((SpaceShip)tsssw.toArray()[1]).arriveWhen > d)
 							))
 							))
 					{
-						double dist = pa.lastPlanet.distance(css.planet);
-						if( pa.lastPlanet.pkgs.size() > 1 )
+						double dist = Galaxy.getPlanet(pa.lastPlanetName).distance(Galaxy.getPlanet(css.planetName));
+						if( Galaxy.getPlanet(pa.lastPlanetName).pkgs.size() > 1 )
 						{
-							dist -= (pa.lastOwner == null) ? 5 : 2;
+							dist -= (pa.lastOwnerName == null) ? 5 : 2;
 						}
-						else if(pa.lastOwner == null)
+						else if(pa.lastOwnerName == null)
 						{
 							dist -= 10;
 						}
 
-						if( tsss != null && tsss.first().arriveWhen < d )
+						if( tsss != null && Galaxy.getSpaceShip(tsss.first()).arriveWhen < d )
 						{
 							dist += 5;
 						}
@@ -189,13 +192,13 @@ public class Selector
 			if(pkg != null)
 			{
 				pkg.claim = css.getUniqueId();
-				System.out.println(css.getUniqueId() + " go to " + pkg.lastPlanet.getName() + " van felveheto csomag " + pkg.getPackageId());
-				return pkg.lastPlanet;
+				System.out.println(css.getUniqueId() + " go to " + Galaxy.getPlanet(pkg.lastPlanetName).getName() + " van felveheto csomag " + pkg.getPackageId());
+				return Galaxy.getPlanet(pkg.lastPlanetName);
 				// return pmin;
 			}
 			// ha nincs, követünk valakit
 		}
-
+		/*
 		// koveto modszer.
 		System.out.println(css.getUniqueId() + " kovessunk valakit");
 
@@ -304,7 +307,8 @@ public class Selector
 			prand = (Planet) Galaxy.planets.values().toArray()[nth];
 		}
 		System.out.println(css.getUniqueId() + " go to " + prand.getName() + " because rand ");
-		return prand;
+		return prand;*/
+		return null;
 	}
 
 }

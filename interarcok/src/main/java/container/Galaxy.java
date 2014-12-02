@@ -13,6 +13,13 @@ public class Galaxy
 	public static ConcurrentHashMap<String, Owner> teams = new ConcurrentHashMap<String, Owner>();
 	public static ConcurrentHashMap<String, SpaceShip> ships = new ConcurrentHashMap<String, SpaceShip>();
 
+	static
+	{
+		packages.put(null, null);
+		planets.put(null, null);
+		teams.put(null, null);
+		ships.put(null, null);
+	}
 	public static void parsePlanets( JSONObject job ) throws JSONException
 	{
 		JSONArray pls = job.getJSONArray("planets");
@@ -33,5 +40,22 @@ public class Galaxy
 
 			new TheySpaceShips(planet);
 		}
+	}
+
+	public static Package getPackage(Integer i)
+	{
+		return packages.get(i);
+	}
+	public static Planet getPlanet(String i)
+	{
+		return planets.get(i);
+	}
+	public static Owner getTeam(String i)
+	{
+		return teams.get(i);
+	}
+	public static SpaceShip getSpaceShip(String i)
+	{
+		return ships.get(i);
 	}
 }

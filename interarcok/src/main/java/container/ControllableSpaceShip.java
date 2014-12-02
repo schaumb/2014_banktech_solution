@@ -24,15 +24,17 @@ public class ControllableSpaceShip extends SpaceShip
 		switch(res)
 		{
 		case -2 :
-			planet.owned = team;
+			Galaxy.getPlanet(planetName).ownerName = teamName;
 			break;
 		case -1 : crash(); break;
 		default:
+			Package pack = Galaxy.getPackage(this.pack);
 			pack.isMoveing.set(false);
-			pack.lastOwner = team;
-			pack.lastPlanet = planet;
-			planet.owned = team;
-			planet.pkgs.add(pack);
+			pack.lastOwnerName = teamName;
+			pack.lastPlanetName = planetName;
+			Planet planet = Galaxy.getPlanet(this.planetName);
+			planet.ownerName = teamName;
+			planet.pkgs.add(this.pack);
 
 			pack = null;
 			break;
@@ -47,10 +49,11 @@ public class ControllableSpaceShip extends SpaceShip
 		{
 		case -1 : crash(); break;
 		case 0 :
-			this.pack = pack;
+			this.pack = pack.packageId;
 		case -2 : // valaki elvitte
 			pack.isMoveing.set(true);
 			pack.claim = null;
+			Planet planet = Galaxy.getPlanet(this.planetName);
 			planet.pkgs.remove(pack);
 			break;
 		}
@@ -59,33 +62,34 @@ public class ControllableSpaceShip extends SpaceShip
 
 	private void go()
 	{
-		int res = Communication.go(targetPlanet.name, shipNum);
+		int res = Communication.go(targetPlanetName, shipNum);
 		switch(res)
 		{
 		case -1 : crash(); break;
 		default:
 			arriveWhen = System.currentTimeMillis() + res;
-			planet = null;
+			planetName = targetPlanetName;
+			Galaxy.getPlanet(planetName).claim = null;
 			break;
 		}
 	}
 
 	private void installMine()
 	{
-		int res = Communication.installMine(planet.name, shipNum);
+		int res = Communication.installMine(planetName, shipNum);
 		switch(res)
 		{
 		case -1 : crash(); break;
 		default:
+			Planet planet = Galaxy.getPlanet(planetName);
 			planet.hasMine.set(true);
-			team.remainingMines = res;
 			break;
 		}
 	}
 	public void crash()
 	{
 		arriveWhen = System.currentTimeMillis() + 120000;
-		targetPlanet = planet;
+		targetPlanetName = planetName;
 	}
 
 	public void KiirMindent()
@@ -94,23 +98,23 @@ public class ControllableSpaceShip extends SpaceShip
 		str += "packages\n";
 		for(Package p : Galaxy.packages.values())
 		{
-			str += p.packageId + " " + p.isMoveing.get() + " " + p.lastPlanet.name + " " + (p.lastOwner == null ? "null" : p.lastOwner.name) + "\n";
+			str += p.packageId + " " + p.isMoveing.get() + " " + p.lastPlanetName + " " + p.lastOwnerName + "\n";
 		}
 		str += "planets\n";
 		for(Planet p : Galaxy.planets.values())
 		{
-			str += p.name + " " + p.pkgs.size() + " " + (p.owned == null ? "null" : p.owned.name) + " pkgs:";
-			for(Package pk : p.pkgs)
+			str += p.name + " " + p.pkgs.size() + " " + p.ownerName + " pkgs:";
+			for(Integer pk : p.pkgs)
 			{
-				str += pk.packageId + " ";
+				str += pk + " ";
 			}
 			str += "\n";
 		}
 		str += "ships\n";
 		for(SpaceShip p : Galaxy.ships.values())
 		{
-			str += p.getUniqueId() + " " + p.arriveWhen + " p:" + (p.planet == null ? "null" : p.planet.name) + " t:" +
-					(p.targetPlanet == null ? "null" : p.targetPlanet.name) + " pack:" + (p.pack == null ? "null" : p.pack.packageId) + "\n";
+			str += p.getUniqueId() + " " + p.arriveWhen + " p:" + p.planetName + " t:" +
+					p.targetPlanetName + " pack:" + p.pack + "\n";
 		}
 		Loggers.logLogger.info(str);
 	}
@@ -124,14 +128,16 @@ public class ControllableSpaceShip extends SpaceShip
 			Communication.whereAre();
 			Selector.recalculatePTS();
 			KiirMindent();
-			if(planet.owned == null && pack != null && pack.lastPlanet != planet)
+			Planet planet = Galaxy.getPlanet(planetName);
+			Package pack = Galaxy.getPackage(this.pack);
+			if(planet.ownerName == null && pack != null && pack.lastPlanetName != planetName)
 			{
 				if(!drop())
 				{
 					bugsearch = true;
 				}
 				Package p = pack;
-				System.out.println("b4 - " + p.packageId + " " + p.isMoveing.get() + " " + p.lastPlanet.name + " " + (p.lastOwner == null ? "null" : p.lastOwner.name));
+				System.out.println("b4 - " + p.packageId + " " + p.isMoveing.get() + " " + p.lastPlanetName + " " + p.lastOwnerName);
 
 			}
 
@@ -142,9 +148,9 @@ public class ControllableSpaceShip extends SpaceShip
 				{
 
 					if( (p.claim == null || getUniqueId().equals(p.claim)) &&
-							(p.lastOwner == null || !p.lastOwner.areWe()))
+							(p.lastOwnerName == null || !p.lastOwnerName.equals(teamName)))
 					{
-						System.out.println("after - " + p.packageId + " " + p.isMoveing.get() + " " + p.lastPlanet.name + " " + (p.lastOwner == null ? "null" : p.lastOwner.name));
+						System.out.println("after - " + p.packageId + " " + p.isMoveing.get() + " " + p.lastPlanetName + " " + p.lastOwnerName);
 						if(pick(p) != -2)
 						{
 							break;
@@ -153,9 +159,9 @@ public class ControllableSpaceShip extends SpaceShip
 				}
 			}
 
-			if(planet.owned != null && planet.owned.areWe() && !planet.hasMine.get())
+			if(planet.ownerName != null && planet.ownerName.equals(teamName) && !planet.hasMine.get())
 			{
-				TreeSet<SpaceShip> ss = Selector.planet_arrivers_without_package.get(planet);
+				TreeSet<String> ss = Selector.planet_arrivers_without_package.get(planet);
 				if(Selector.rand.nextInt(20) == 0
 						|| (ss != null && ss.size() > 0))
 				{
@@ -163,9 +169,9 @@ public class ControllableSpaceShip extends SpaceShip
 				}
 			}
 
-			targetPlanet = Selector.calculateNext(this);
+			targetPlanetName = Selector.calculateNext(this).name;
 
-			if(targetPlanet != null) // always true
+			if(targetPlanetName != null) // always true
 			{
 				go();
 
@@ -185,10 +191,6 @@ public class ControllableSpaceShip extends SpaceShip
 				{
 					System.exit(1);
 				}
-
-				planet = targetPlanet;
-				targetPlanet = null;
-				planet.claim = null;
 			}
 		}
 	}

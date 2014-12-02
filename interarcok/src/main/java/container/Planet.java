@@ -13,67 +13,40 @@ public class Planet
 {
 	public AtomicBoolean hasMine = new AtomicBoolean(false);
 	public String claim = null;
-	public CopyOnWriteArrayList<Package> pkgs = new CopyOnWriteArrayList<Package>();
+	public CopyOnWriteArrayList<Integer> pkgs = new CopyOnWriteArrayList<Integer>();
 
 	public Planet(JSONObject planet) throws JSONException
 	{
 		name = planet.getString("name");
 
-		Planet oldMe = Galaxy.planets.get(name);
-		if(oldMe != null)
+		coord = new Point2D.Double(
+				planet.getDouble("x"),
+				planet.getDouble("y"));
+
+		JSONArray pks = planet.optJSONArray("packages");
+		if(pks != null)
 		{
-			oldMe.owned = null;
-			oldMe.pkgs.clear();
-			JSONArray pks = planet.optJSONArray("packages");
-
-			if(pks != null)
+			for( int j = 0; j < pks.length() ; ++j )
 			{
-				for( int j = 0; j < pks.length() ; ++j )
-				{
-					JSONObject pack = pks.getJSONObject(j);
+				JSONObject pack = pks.getJSONObject(j);
 
-					Package p = Galaxy.packages.get(
-							new Package(pack, false).packageId);
-					oldMe.pkgs.add(p);
-					if(p.lastOwner != null)
-					{
-						owned = p.lastOwner;
-					}
+				Package p = new Package(pack, false);
+
+				pkgs.add(p.packageId);
+
+				if(p.lastOwnerName != null)
+				{
+					ownerName = p.lastOwnerName;
 				}
 			}
-			coord = new Point2D.Double();
 		}
-		else
-		{
-			coord = new Point2D.Double(
-					planet.getDouble("x"),
-					planet.getDouble("y"));
-
-			Galaxy.planets.put(name, this);
-
-			JSONArray pks = planet.optJSONArray("packages");
-			if(pks != null)
-			{
-				for( int j = 0; j < pks.length() ; ++j )
-				{
-					JSONObject pack = pks.getJSONObject(j);
-
-					Package p = new Package(pack, false);
-					pkgs.add(p);
-					if(p.lastOwner != null)
-					{
-						owned = p.lastOwner;
-					}
-				}
-			}
-			Galaxy.planets.put(name, this);
-		}
+		Galaxy.planets.put(name, this);
 	}
 
 
-	final String name;
+	public final String name;
 	final Point2D coord;
-	public Owner owned = null;
+	public String ownerName;
 
 	public Double distance(Planet p2)
 	{

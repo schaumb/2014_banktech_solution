@@ -3,7 +3,6 @@ package logic;
 import java.util.concurrent.atomic.AtomicLong;
 
 import communication.Communication;
-import container.Galaxy;
 import container.MySpaceShips;
 
 public class MoverClass
